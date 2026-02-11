@@ -3,28 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>King Dev Academy - Multiplayer Pong</title>
+    <title>King Dev Academy - Pong Ultimate</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --neon-blue: #00d2ff; --neon-pink: #ff007f; }
-        body { background: #0a0a0a; color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; touch-action: none; }
-        #menu { background: rgba(0,0,0,0.9); padding: 30px; border: 2px solid var(--neon-blue); text-align: center; border-radius: 10px; z-index: 100; }
-        input { padding: 12px; border: 1px solid var(--neon-blue); background: #111; color: white; margin: 10px; width: 250px; text-align: center; }
-        button { background: var(--neon-blue); color: black; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        button:hover { background: white; }
-        canvas { border: 3px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: none; background: #000; max-width: 95vw; max-height: 80vh; }
-        #idDisplay { color: var(--neon-pink); font-size: 1.2em; word-break: break-all; }
+        :root { --neon-blue: #00d2ff; --neon-pink: #ff007f; --neon-green: #39ff14; }
+        body { background: #050505; color: #fff; font-family: 'Courier New', Courier, monospace; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; touch-action: none; }
+        
+        #menu-container { background: rgba(10, 10, 10, 0.95); padding: 30px; border: 2px solid var(--neon-blue); border-radius: 15px; text-align: center; box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); z-index: 100; max-width: 400px; width: 90%; }
+        
+        h1 { font-size: 2.5em; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); margin: 0; }
+        .brand { font-size: 0.8em; color: var(--neon-pink); letter-spacing: 3px; margin-bottom: 25px; }
+        
+        .section { display: none; flex-direction: column; gap: 10px; }
+        .active { display: flex; }
+
+        button { background: transparent; color: #fff; border: 1px solid #444; padding: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-weight: bold; }
+        button:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); border-color: var(--neon-blue); }
+        .btn-multi { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .btn-multi:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 15px var(--neon-pink); }
+
+        input { background: #111; border: 1px solid #333; color: #fff; padding: 12px; text-align: center; font-family: monospace; }
+        
+        #id-box { background: #1a1a1a; padding: 10px; margin: 15px 0; border: 1px dashed var(--neon-green); color: var(--neon-green); font-size: 0.9em; }
+        
+        canvas { border: 2px solid #222; background: #000; display: none; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="menu">
-        <h1 style="color:var(--neon-blue)">KING PONG</h1>
-        <p>SEU ID: <br><span id="idDisplay">CONECTANDO...</span></p>
-        <input type="text" id="targetID" placeholder="Cole o ID do seu amigo">
-        <br>
-        <button onclick="sendInvite()">Convidar Amigo</button>
-        <p style="font-size: 12px; color: #666; margin-top: 20px;">King Dev Academy</p>
+    <div id="menu-container">
+        <h1>PONG ELITE</h1>
+        <div class="brand">KING DEV ACADEMY</div>
+
+        <div id="main-menu" class="section active">
+            <button onclick="showSection('bot-menu')">Jogar vs BOT</button>
+            <button onclick="startGame('pvp')">Local 1 VS 1</button>
+            <button class="btn-multi" onclick="showSection('multi-menu')">Partida Multiplayer</button>
+        </div>
+
+        <div id="bot-menu" class="section">
+            <button onclick="startGame('bot', 0.06, 5)">Dificuldade: Fácil</button>
+            <button onclick="startGame('bot', 0.12, 8)">Dificuldade: Médio</button>
+            <button onclick="startGame('bot', 0.2, 12)">Dificuldade: Impossível</button>
+            <button style="font-size: 10px; margin-top: 10px;" onclick="showSection('main-menu')">← Voltar</button>
+        </div>
+
+        <div id="multi-menu" class="section">
+            <div id="id-box">SEU ID: <span id="my-id">GERANDO...</span></div>
+            <input type="text" id="targetID" placeholder="ID DO AMIGO">
+            <button class="btn-multi" onclick="sendInvite()">Convidar Amigo</button>
+            <button style="font-size: 10px; margin-top: 10px;" onclick="showSection('main-menu')">← Voltar</button>
+        </div>
     </div>
 
     <canvas id="pong" width="800" height="500"></canvas>
@@ -34,26 +64,34 @@
         const canvas = document.getElementById("pong");
         const ctx = canvas.getContext("2d");
         
-        let myID, currentRoom, isHost = false;
-        const ball = { x: 400, y: 250, r: 8, vX: 5, vY: 5 };
-        const p1 = { y: 210, h: 80, w: 12, score: 0 }; // Local
-        const p2 = { y: 210, h: 80, w: 12, score: 0 }; // Remoto
+        let myID, currentRoom, isHost = false, gameMode = 'bot';
+        let botLevel = 0.1, botSpeedLimit = 7;
 
+        const ball = { x: 400, y: 250, r: 8, vX: 6, vY: 6, speed: 6 };
+        const p1 = { y: 210, h: 80, w: 12, score: 0 }; 
+        const p2 = { y: 210, h: 80, w: 12, score: 0 };
+
+        // Sincronização de ID
         socket.on('myID', id => {
             myID = id;
-            document.getElementById('idDisplay').innerText = id;
+            document.getElementById('my-id').innerText = id;
         });
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
 
         function sendInvite() {
             const tid = document.getElementById('targetID').value;
             if(tid) {
                 socket.emit('invitePlayer', tid);
-                alert("Convite enviado! Aguarde seu amigo aceitar.");
+                alert("Convite enviado! Aguarde...");
             }
         }
 
         socket.on('receiveInvite', (fromID) => {
-            if(confirm("Jogador " + fromID.substring(0,5) + "... te convidou! Aceitar?")) {
+            if(confirm("Aceitar convite de: " + fromID.substring(0,5) + "...?")) {
                 socket.emit('acceptInvite', fromID);
             }
         });
@@ -61,79 +99,88 @@
         socket.on('gameStart', (data) => {
             currentRoom = data.room;
             isHost = (myID === data.host);
-            document.getElementById('menu').style.display = 'none';
-            canvas.style.display = 'block';
-            gameLoop();
+            gameMode = 'multiplayer';
+            initGame();
         });
 
-        // Controles (Mouse/Touch)
-        const handleMove = (e) => {
+        function startGame(mode, level, speed) {
+            gameMode = mode;
+            botLevel = level || 0.1;
+            botSpeedLimit = speed || 7;
+            initGame();
+        }
+
+        function initGame() {
+            document.getElementById('menu-container').style.display = 'none';
+            canvas.style.display = 'block';
+            p1.score = 0; p2.score = 0;
+            loop();
+        }
+
+        // Controles
+        const move = (e) => {
             const rect = canvas.getBoundingClientRect();
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const y = (clientY - rect.top) * (500 / rect.height) - p1.h/2;
             p1.y = y;
-            socket.emit('updatePos', { room: currentRoom, y: p1.y, player: myID });
+            if(gameMode === 'multiplayer') {
+                socket.emit('updatePos', { room: currentRoom, y: p1.y, player: myID });
+            }
         };
 
-        canvas.addEventListener('mousemove', handleMove);
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive:false});
+        canvas.addEventListener('mousemove', move);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, {passive:false});
 
-        socket.on('opponentPos', (data) => {
-            p2.y = data.y;
-        });
+        socket.on('opponentPos', (data) => { p2.y = data.y; });
+        socket.on('ballData', (data) => { if(!isHost) { ball.x = data.x; ball.y = data.y; p1.score = data.p1Score; p2.score = data.p2Score; } });
 
-        socket.on('ballData', (data) => {
-            if(!isHost) {
-                ball.x = data.x; ball.y = data.y;
-                p1.score = data.p1Score; p2.score = data.p2Score;
-            }
-        });
-
-        function gameLoop() {
+        function loop() {
             update();
             draw();
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame(loop);
         }
 
         function update() {
-            if(isHost) {
-                ball.x += ball.vX; ball.y += ball.vY;
-                if(ball.y < 0 || ball.y > 500) ball.vY *= -1;
-
-                // Colisão simples
-                if(ball.x < 30 && ball.y > p1.y && ball.y < p1.y + p1.h) ball.vX *= -1.1;
-                if(ball.x > 770 && ball.y > p2.y && ball.y < p2.y + p2.h) ball.vX *= -1.1;
-
-                if(ball.x < 0) { p2.score++; resetBall(); }
-                if(ball.x > 800) { p1.score++; resetBall(); }
-
+            if(gameMode === 'bot') {
+                p2.y += (ball.y - (p2.y + p2.h/2)) * botLevel;
+                ballLogic();
+            } else if(gameMode === 'multiplayer' && isHost) {
+                ballLogic();
                 socket.emit('ballSync', { room: currentRoom, x: ball.x, y: ball.y, p1Score: p1.score, p2Score: p2.score });
+            } else if(gameMode === 'pvp') {
+                ballLogic();
             }
         }
 
+        function ballLogic() {
+            ball.x += ball.vX; ball.y += ball.vY;
+            if(ball.y < 0 || ball.y > 500) ball.vY *= -1;
+            let player = (ball.x < 400) ? p1 : p2;
+            if(collision(ball, player)) {
+                let dir = (ball.x < 400) ? 1 : -1;
+                ball.vX = dir * ball.speed;
+                ball.speed += 0.2;
+            }
+            if(ball.x < 0) { p2.score++; resetBall(); }
+            if(ball.x > 800) { p1.score++; resetBall(); }
+        }
+
+        function collision(b, p) {
+            let p_x = (b.x < 400) ? 10 : 778;
+            return b.x + b.r > p_x && b.x - b.r < p_x + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
+        }
+
         function resetBall() {
-            ball.x = 400; ball.y = 250; ball.vX = 5; ball.vY = 5;
+            ball.x = 400; ball.y = 250; ball.vX *= -1; ball.speed = 6;
         }
 
         function draw() {
             ctx.fillStyle = "#000"; ctx.fillRect(0,0, 800, 500);
-            
-            // Rede
-            ctx.strokeStyle = "#333"; ctx.setLineDash([10,10]);
-            ctx.beginPath(); ctx.moveTo(400,0); ctx.lineTo(400,500); ctx.stroke();
-
-            // Placar
+            ctx.fillStyle = "#333"; ctx.fillRect(399, 0, 2, 500);
             ctx.fillStyle = "#fff"; ctx.font = "30px Arial";
-            ctx.fillText(isHost ? p1.score : p2.score, 350, 50);
-            ctx.fillText(isHost ? p2.score : p1.score, 430, 50);
-
-            // Raquetes (A minha é sempre azul)
-            ctx.fillStyle = var(--neon-blue);
-            ctx.fillRect(10, p1.y, p1.w, p1.h);
-            ctx.fillStyle = var(--neon-pink);
-            ctx.fillRect(778, p2.y, p2.w, p2.h);
-
-            // Bola
+            ctx.fillText(p1.score, 350, 50); ctx.fillText(p2.score, 420, 50);
+            ctx.fillStyle = "#00d2ff"; ctx.fillRect(10, p1.y, p1.w, p1.h);
+            ctx.fillStyle = "#ff007f"; ctx.fillRect(778, p2.y, p2.w, p2.h);
             ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
         }
     </script>
