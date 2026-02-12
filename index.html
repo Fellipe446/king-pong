@@ -3,140 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>King Dev Academy - Pong Ultimate</title>
+    <title>KING PONG ULTIMATE | King Dev Academy</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --neon-blue: #00d2ff; --neon-pink: #ff007f; --neon-green: #39ff14; }
-        body { background: #050505; color: #fff; font-family: 'Courier New', Courier, monospace; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; touch-action: none; }
-        
-        #menu-container { background: rgba(10, 10, 10, 0.95); padding: 30px; border: 2px solid var(--neon-blue); border-radius: 15px; text-align: center; box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); z-index: 100; max-width: 400px; width: 90%; }
-        
-        h1 { font-size: 2.2em; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); margin: 0; }
-        .brand { font-size: 0.8em; color: var(--neon-pink); letter-spacing: 3px; margin-bottom: 25px; }
-        
-        .section { display: none; flex-direction: column; gap: 12px; }
-        .active { display: flex; }
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --bg-dark: #080808;
+        }
 
-        button { background: transparent; color: #fff; border: 1px solid #444; padding: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase; font-weight: bold; border-radius: 4px; }
-        button:hover:not(:disabled) { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); border-color: var(--neon-blue); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
 
-        .btn-multi { border-color: var(--neon-pink); color: var(--neon-pink); }
-        
-        #id-box { background: #1a1a1a; padding: 15px; margin: 10px 0; border: 1px dashed var(--neon-green); color: var(--neon-green); font-size: 1.1em; }
-        
-        /* Animação de carregando */
-        .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite;}
-        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; } }
+        #ui-layer {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.3);
+            width: 90%;
+            max-width: 450px;
+            transition: opacity 0.5s ease;
+        }
 
-        canvas { border: 2px solid #222; background: #000; display: none; max-width: 95vw; max-height: 85vh; }
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            background: linear-gradient(to bottom, var(--neon-blue), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+        }
+
+        .brand-text {
+            color: var(--neon-pink);
+            letter-spacing: 5px;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .menu-section {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-section.active { display: flex; }
+
+        button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 15px;
+            font-size: 1em;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--neon-blue);
+            color: #000;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        input {
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        #id-display-container {
+            background: #1a1a1a;
+            border: 1px dashed var(--neon-green);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        #my-id-val {
+            font-size: 2.5em;
+            color: var(--neon-green);
+            display: block;
+            margin-top: 5px;
+        }
+
+        canvas {
+            display: none;
+            background: #000;
+            max-width: 100vw;
+            max-height: 100vh;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+        }
+
+        .loading-text {
+            font-style: italic;
+            color: #666;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        #scoreboard {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: none;
+            justify-content: center;
+            gap: 100px;
+            font-size: 40px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 0 0 10px #000;
+        }
     </style>
 </head>
 <body>
 
-    <div id="menu-container">
+    <div id="scoreboard">
+        <span id="score1" style="color: var(--neon-blue)">0</span>
+        <span id="score2" style="color: var(--neon-pink)">0</span>
+    </div>
+
+    <div id="ui-layer">
         <h1>PONG ELITE</h1>
-        <div class="brand">KING DEV ACADEMY</div>
+        <div class="brand-text">KING DEV ACADEMY</div>
 
-        <div id="main-menu" class="section active">
-            <button onclick="showSection('bot-menu')">Jogar vs BOT</button>
-            <button onclick="startGame('pvp')">Local 1 VS 1</button>
-            <button class="btn-multi" onclick="showSection('multi-menu')">Online Multiplayer</button>
+        <div id="section-main" class="menu-section active">
+            <button onclick="changeSection('section-bot')">VS COMPUTADOR (BOT)</button>
+            <button onclick="startGame('pvp')">LOCAL 1 VS 1</button>
+            <button onclick="changeSection('section-multi')" style="border-color: var(--neon-pink); color: var(--neon-pink);">MULTIPLAYER ONLINE</button>
         </div>
 
-        <div id="bot-menu" class="section">
-            <button onclick="startGame('bot', 0.05, 5)">Fácil</button>
-            <button onclick="startGame('bot', 0.1, 8)">Médio</button>
-            <button onclick="startGame('bot', 0.2, 12)">Impossível</button>
-            <button style="font-size: 10px;" onclick="showSection('main-menu')">Voltar</button>
+        <div id="section-bot" class="menu-section">
+            <button onclick="startGame('bot', 0.05, 6)">NÍVEL: FÁCIL</button>
+            <button onclick="startGame('bot', 0.12, 9)">NÍVEL: MÉDIO</button>
+            <button onclick="startGame('bot', 0.25, 14)">NÍVEL: KING (IMPOSSÍVEL)</button>
+            <button onclick="changeSection('section-main')" style="font-size: 12px; margin-top: 20px;">VOLTAR</button>
         </div>
 
-        <div id="multi-menu" class="section">
-            <div id="id-box">SEU ID: <span id="my-id" class="loading-dots">CONECTANDO AO SERVIDOR</span></div>
-            <p id="server-msg" style="font-size: 10px; color: #666;">O servidor gratuito do Render demora ~1min para acordar.</p>
-            <input type="number" id="targetID" placeholder="ID DO AMIGO" style="padding:10px; background:#000; border:1px solid #333; color:#fff; text-align:center;">
-            <button id="inviteBtn" class="btn-multi" onclick="sendInvite()" disabled>Convidar Amigo</button>
-            <button style="font-size: 10px;" onclick="showSection('main-menu')">Voltar</button>
+        <div id="section-multi" class="menu-section">
+            <div id="id-display-container">
+                <span style="font-size: 0.8em; color: #888;">SEU ID DE ACESSO:</span>
+                <span id="my-id-val" class="loading-text">CONECTANDO...</span>
+            </div>
+            <input type="number" id="input-target-id" placeholder="ID DO AMIGO">
+            <button onclick="sendInvite()" id="btn-invite" disabled>ENVIAR CONVITE</button>
+            <button onclick="changeSection('section-main')" style="font-size: 12px;">VOLTAR</button>
         </div>
     </div>
 
-    <canvas id="pong" width="800" height="500"></canvas>
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
     <script>
-        // Tenta conectar e manter a conexão
-        const socket = io({
-            reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000
-        });
-
-        const canvas = document.getElementById("pong");
+        /**
+         * ENGINE CORE - KING DEV ACADEMY
+         */
+        const socket = io();
+        const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        let myID, currentRoom, isHost = false, gameMode = 'bot';
+        
+        // Game State
+        let gameActive = false;
+        let mode = 'bot'; // 'bot', 'pvp', 'multi'
+        let currentRoom = null;
+        let isHost = false;
+        let myDisplayId = "";
+        
+        // Physics Params
+        let botDifficulty = 0.1;
+        let botMaxSpeed = 8;
 
-        // Interface do Menu
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        // Entities
+        const ball = {
+            x: 500, y: 300, r: 10,
+            vX: 7, vY: 7, speed: 7,
+            color: "#fff"
+        };
+
+        const p1 = {
+            x: 20, y: 250, w: 15, h: 100,
+            score: 0, color: "#00d2ff"
+        };
+
+        const p2 = {
+            x: 965, y: 250, w: 15, h: 100,
+            score: 0, color: "#ff007f"
+        };
+
+        // Particles System
+        let particles = [];
+        function createParticles(x, y, color) {
+            for(let i=0; i<15; i++) {
+                particles.push({
+                    x, y,
+                    vX: (Math.random() - 0.5) * 10,
+                    vY: (Math.random() - 0.5) * 10,
+                    alpha: 1,
+                    color: color
+                });
+            }
         }
 
-        // Quando o ID finalmente chega
-        socket.on('myID', id => {
-            myID = id;
-            const idSpan = document.getElementById('my-id');
-            idSpan.innerText = id;
-            idSpan.classList.remove('loading-dots');
-            document.getElementById('inviteBtn').disabled = false;
-            document.getElementById('server-msg').innerText = "Servidor Online!";
-            document.getElementById('server-msg').style.color = "var(--neon-green)";
+        /**
+         * MULTIPLAYER CONNECTIVITY
+         */
+        socket.on('myID', (id) => {
+            myDisplayId = id;
+            const el = document.getElementById('my-id-val');
+            el.innerText = id;
+            el.classList.remove('loading-text');
+            document.getElementById('btn-invite').disabled = false;
         });
-
-        socket.on('connect_error', () => {
-            document.getElementById('my-id').innerText = "ACORDANDO SERVIDOR";
-        });
-
-        // Lógica de Jogo
-        const ball = { x: 400, y: 250, r: 8, vX: 6, vY: 6, speed: 6 };
-        const p1 = { y: 210, h: 80, w: 12, score: 0 }; 
-        const p2 = { y: 210, h: 80, w: 12, score: 0 };
 
         function sendInvite() {
-            const tid = document.getElementById('targetID').value;
-            if(tid) socket.emit('invitePlayer', tid.toString());
+            const tid = document.getElementById('input-target-id').value;
+            if(tid) {
+                socket.emit('invitePlayer', tid);
+                alert("Convite enviado para o ID " + tid + ". Aguarde!");
+            }
         }
 
-        socket.on('receiveInvite', (fromID) => {
-            if(confirm("Aceitar convite do ID: " + fromID + "?")) socket.emit('acceptInvite', fromID);
+        socket.on('receiveInvite', (data) => {
+            if(confirm("Jogador " + data.from + " te convidou. Aceitar?")) {
+                socket.emit('acceptInvite', data.from);
+            }
         });
 
         socket.on('gameStart', (data) => {
             currentRoom = data.room;
-            isHost = (socket.id === data.host);
-            gameMode = 'multiplayer';
-            document.getElementById('menu-container').style.display = 'none';
-            canvas.style.display = 'block';
-            resetBall();
-            loop();
+            isHost = (socket.id === data.hostSocketId);
+            mode = 'multi';
+            document.getElementById('ui-layer').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('ui-layer').style.display = 'none';
+                canvas.style.display = 'block';
+                document.getElementById('scoreboard').style.display = 'flex';
+                gameActive = true;
+                initGame();
+            }, 500);
         });
 
-        // Loop básico para teste
-        function loop() {
-            ctx.fillStyle = "#000"; ctx.fillRect(0,0,800,500);
-            ctx.fillStyle = "#fff"; ctx.fillRect(10, p1.y, 10, 80);
-            ctx.fillStyle = "#fff"; ctx.fillRect(780, p2.y, 10, 80);
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, 8, 0, Math.PI*2); ctx.fill();
-            requestAnimationFrame(loop);
+        /**
+         * GAME ENGINE LOGIC
+         */
+        function changeSection(id) {
+            document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        function resetBall() { ball.x = 400; ball.y = 250; }
-        
-        // Movimento (Touch/Mouse)
-        canvas.addEventListener('mousemove', e => {
+        function startGame(m, difficulty, maxSpeed) {
+            mode = m;
+            botDifficulty = difficulty || 0.1;
+            botMaxSpeed = maxSpeed || 8;
+            
+            document.getElementById('ui-layer').style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('scoreboard').style.display = 'flex';
+            gameActive = true;
+            initGame();
+        }
+
+        function initGame() {
+            resetBall();
+            requestAnimationFrame(update);
+        }
+
+        // Controls
+        const handleInput = (e) => {
+            if(!gameActive) return;
             const rect = canvas.getBoundingClientRect();
-            p1.y = (e.clientY - rect.top) * (500 / rect.height) - 40;
-            if(gameMode === 'multiplayer') socket.emit('updatePos', { room: currentRoom, y: p1.y });
+            const root = document.documentElement;
+            let touchY = e.touches ? e.touches[0].clientY : e.clientY;
+            let relativeY = (touchY - rect.top - root.scrollTop) * (canvas.height / rect.height);
+            
+            p1.y = relativeY - p1.h/2;
+
+            if(mode === 'multi') {
+                socket.emit('updatePos', { room: currentRoom, y: p1.y });
+            }
+        };
+
+        canvas.addEventListener('mousemove', handleInput);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleInput(e); }, {passive: false});
+
+        socket.on('opponentPos', (data) => {
+            p2.y = data.y;
         });
-        socket.on('opponentPos', d => p2.y = d.y);
+
+        socket.on('ballData', (data) => {
+            if(!isHost) {
+                ball.x = canvas.width - data.x; // Inverte visão para o cliente
+                ball.y = data.y;
+                p2.score = data.p1Score;
+                p1.score = data.p2Score;
+            }
+        });
+
+        function resetBall() {
+            ball.x = canvas.width/2;
+            ball.y = canvas.height/2;
+            ball.speed = 7;
+            ball.vX = (Math.random() > 0.5 ? 1 : -1) * ball.speed;
+            ball.vY = (Math.random() - 0.5) * 10;
+        }
+
+        function update() {
+            if(!gameActive) return;
+
+            // 1. Ball Physics (Host or Single Player)
+            if(mode !== 'multi' || isHost) {
+                ball.x += ball.vX;
+                ball.y += ball.vY;
+
+                // Wall Collision
+                if(ball.y + ball.r > canvas.height || ball.y - ball.r < 0) {
+                    ball.vY *= -1;
+                    createParticles(ball.x, ball.y, "#fff");
+                }
+
+                // Paddle Collision
+                let player = (ball.x < canvas.width/2) ? p1 : p2;
+                if(checkCollision(ball, player)) {
+                    let collidePoint = (ball.y - (player.y + player.h/2)) / (player.h/2);
+                    let angle = (Math.PI/4) * collidePoint;
+                    let direction = (ball.x < canvas.width/2) ? 1 : -1;
+                    
+                    ball.vX = direction * ball.speed * Math.cos(angle);
+                    ball.vY = ball.speed * Math.sin(angle);
+                    ball.speed += 0.4;
+                    
+                    createParticles(ball.x, ball.y, player.color);
+                }
+
+                // Scoring
+                if(ball.x < 0) {
+                    p2.score++;
+                    resetBall();
+                } else if(ball.x > canvas.width) {
+                    p1.score++;
+                    resetBall();
+                }
+
+                if(mode === 'multi') {
+                    socket.emit('ballSync', {
+                        room: currentRoom,
+                        x: ball.x, y: ball.y,
+                        p1Score: p1.score, p2Score: p2.score
+                    });
+                }
+            }
+
+            // 2. AI Logic
+            if(mode === 'bot') {
+                let targetY = ball.y - p2.h/2;
+                let diff = targetY - p2.y;
+                p2.y += Math.min(Math.max(diff * botDifficulty, -botMaxSpeed), botMaxSpeed);
+            }
+
+            // 3. Render
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function checkCollision(b, p) {
+            return b.x + b.r > p.x && b.x - b.r < p.x + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
+        }
+
+        function draw() {
+            // Background
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+
+            // Center Line
+            ctx.strokeStyle = "rgba(255,255,255,0.1)";
+            ctx.setLineDash([10, 20]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, 0);
+            ctx.lineTo(canvas.width/2, canvas.height);
+            ctx.stroke();
+
+            // Scores
+            document.getElementById('score1').innerText = p1.score;
+            document.getElementById('score2').innerText = p2.score;
+
+            // Paddles
+            drawRect(p1.x, p1.y, p1.w, p1.h, p1.color, true);
+            drawRect(p2.x, p2.y, p2.w, p2.h, p2.color, true);
+
+            // Ball
+            drawCircle(ball.x, ball.y, ball.r, "#fff");
+
+            // Particles
+            particles.forEach((p, i) => {
+                p.x += p.vX; p.y += p.vY; p.alpha -= 0.02;
+                ctx.globalAlpha = p.alpha;
+                drawCircle(p.x, p.y, 2, p.color);
+                if(p.alpha <= 0) particles.splice(i, 1);
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawRect(x, y, w, h, color, neon) {
+            if(neon) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+            }
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawCircle(x, y, r, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI*2);
+            ctx.fill();
+        }
+
     </script>
 </body>
 </html>
