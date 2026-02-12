@@ -3,312 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KING PONG | King Dev Academy</title>
+    <title>KING PONG ULTIMATE | King Dev Academy</title>
     <style>
         :root {
             --neon-blue: #00d2ff;
             --neon-pink: #ff007f;
-            --bg-dark: #0a0a0a;
+            --neon-green: #39ff14;
+            --glass: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background-color: var(--bg-dark);
+            background: #050505;
             color: #fff;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
             overflow: hidden;
-            touch-action: none; /* Impede o scroll no celular ao jogar */
         }
 
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16/9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Menu de Início */
-        #main-menu {
+        /* --- UI COMPONENTES --- */
+        .overlay {
             position: absolute;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.9);
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            z-index: 100;
+            transition: opacity 0.4s ease;
+        }
+
+        .panel {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
             border: 2px solid var(--neon-blue);
-            border-radius: 10px;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.2);
+            max-width: 400px;
+            width: 90%;
         }
 
         h1 {
-            font-size: 4em;
+            font-size: 3.5rem;
             margin: 0;
-            color: var(--neon-blue);
-            text-shadow: 0 0 20px var(--neon-blue);
+            background: linear-gradient(to bottom, #fff, var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
         }
 
         .brand {
             color: var(--neon-pink);
             letter-spacing: 5px;
-            margin-bottom: 30px;
             font-weight: bold;
+            margin-bottom: 30px;
+            display: block;
         }
 
         .btn-group {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            width: 250px;
         }
 
         button {
             background: transparent;
             color: #fff;
             border: 1px solid #fff;
-            padding: 15px;
-            font-size: 1em;
+            padding: 15px 30px;
+            font-size: 1rem;
             font-weight: bold;
-            text-transform: uppercase;
             cursor: pointer;
             transition: 0.3s;
-            border-radius: 5px;
+            border-radius: 8px;
+            text-transform: uppercase;
         }
 
         button:hover {
             background: #fff;
             color: #000;
             box-shadow: 0 0 20px #fff;
+            transform: scale(1.05);
         }
 
-        canvas {
-            background: #000;
-            border: 2px solid #333;
+        .btn-mode {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        .btn-mode:hover {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        /* --- SCOREBOARD --- */
+        #game-header {
+            position: absolute;
+            top: 30px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
             width: 100%;
-            height: auto;
+            z-index: 10;
+        }
+
+        .score-card {
+            background: var(--glass);
+            padding: 10px 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .score-val {
+            font-size: 48px;
+            font-weight: 900;
             display: block;
         }
 
-        #score-board {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            font-size: 30px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            padding: 0 20px;
-            box-sizing: border-box;
+        .score-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
         }
+
+        #round-info {
+            color: var(--neon-green);
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* --- CANVAS --- */
+        canvas {
+            background: #000;
+            display: none;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+            max-width: 95vw;
+            max-height: 80vh;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="score-board">
-        <span id="p1-score" style="color: var(--neon-blue)">0</span>
-        <span id="p2-score" style="color: var(--neon-pink)">0</span>
-    </div>
-
-    <div id="main-menu">
-        <h1>PONG</h1>
-        <div class="brand">KING DEV ACADEMY</div>
-        <div class="btn-group">
-            <button onclick="initGame('bot', 0.05)">VS COMPUTADOR</button>
-            <button onclick="initGame('pvp')">1 VS 1 (LOCAL)</button>
+    <div id="game-header">
+        <div class="score-card" style="border-bottom: 3px solid var(--neon-blue)">
+            <span class="score-label">Player 1 (WASD)</span>
+            <span id="p1-score" class="score-val">0</span>
         </div>
-        <p style="font-size: 10px; margin-top: 20px; color: #666;">Use o mouse ou o dedo para mover</p>
+        <div id="round-info">MELHOR DE 3</div>
+        <div class="score-card" style="border-bottom: 3px solid var(--neon-pink)">
+            <span class="score-label">Player 2 (SETAS)</span>
+            <span id="p2-score" class="score-val">0</span>
+        </div>
     </div>
 
-    <canvas id="pongCanvas" width="800" height="450"></canvas>
-</div>
+    <div id="menu-main" class="overlay">
+        <div class="panel">
+            <h1>PONG</h1>
+            <span class="brand">KING DEV ACADEMY</span>
+            <div class="btn-group">
+                <button onclick="showRoundSelector('bot')">PLAYER VS BOT</button>
+                <button class="btn-mode" onclick="showRoundSelector('pvp')">PLAYER VS PLAYER</button>
+            </div>
+        </div>
+    </div>
 
-<script>
-    /**
-     * KING DEV ACADEMY ENGINE
-     * Versão Core: Física, Renderização e BOT Integrado
-     */
-    const canvas = document.getElementById("pongCanvas");
-    const ctx = canvas.getContext("2d");
+    <div id="menu-rounds" class="overlay hidden">
+        <div class="panel" style="border-color: var(--neon-pink)">
+            <h2 style="color: var(--neon-pink)">CONFIGURAR PARTIDA</h2>
+            <p>Escolha o formato da rodada:</p>
+            <div class="btn-group">
+                <button onclick="initGame(1)">RODADA ÚNICA (1)</button>
+                <button onclick="initGame(3)">MELHOR DE 3</button>
+                <button onclick="initGame(5)">MELHOR DE 5</button>
+                <button style="border: none; font-size: 12px;" onclick="backToMain()">← VOLTAR</button>
+            </div>
+        </div>
+    </div>
 
-    // Configurações Globais
-    let mode = 'bot';
-    let isRunning = false;
-    let botLevel = 0.05;
+    <div id="menu-winner" class="overlay hidden">
+        <div class="panel" style="border-color: var(--neon-green)">
+            <h2 id="winner-text" style="color: var(--neon-green); font-size: 2.5rem;">P1 VENCEU!</h2>
+            <p id="winner-sub">Parabéns pelo domínio da arena.</p>
+            <div class="btn-group">
+                <button onclick="restartCurrentMode()">JOGAR NOVAMENTE</button>
+                <button onclick="backToMain()">MENU PRINCIPAL</button>
+            </div>
+        </div>
+    </div>
 
-    // Entidades
-    const ball = {
-        x: 400, y: 225, r: 10,
-        vX: 5, vY: 5, speed: 7,
-        color: "#FFF"
-    };
+    <canvas id="pong" width="1000" height="600"></canvas>
 
-    const player = {
-        x: 10, y: 175, w: 15, h: 100,
-        score: 0, color: "#00d2ff"
-    };
+    <script>
+        /**
+         * ENGINE DE JOGO - KING DEV ACADEMY
+         */
+        const canvas = document.getElementById("pong");
+        const ctx = canvas.getContext("2d");
+        const header = document.getElementById("game-header");
 
-    const opponent = {
-        x: 775, y: 175, w: 15, h: 100,
-        score: 0, color: "#ff007f"
-    };
+        // --- ESTADO DO JOGO ---
+        let gameMode = 'bot'; // 'bot' ou 'pvp'
+        let targetRounds = 3;
+        let isRunning = false;
+        let keys = {};
 
-    // Sistema de Partículas para impacto
-    let particles = [];
-    function spawnParticles(x, y, color) {
-        for(let i=0; i<10; i++) {
-            particles.push({
-                x, y,
-                vX: (Math.random() - 0.5) * 8,
-                vY: (Math.random() - 0.5) * 8,
-                alpha: 1,
-                color
-            });
-        }
-    }
+        const ball = {
+            x: 500, y: 300, r: 10,
+            vX: 7, vY: 7, speed: 8,
+            reset() {
+                this.x = 500; this.y = 300;
+                this.vX = (Math.random() > 0.5 ? 1 : -1) * 7;
+                this.vY = (Math.random() - 0.5) * 10;
+                this.speed = 8;
+            }
+        };
 
-    // Controle de Input (Mouse e Touch)
-    function handleInput(e) {
-        const rect = canvas.getBoundingClientRect();
-        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        let rootY = (clientY - rect.top) * (canvas.height / rect.height);
-        player.y = rootY - player.h / 2;
-    }
+        const p1 = {
+            y: 250, w: 15, h: 100, score: 0,
+            moveUp: false, moveDown: false,
+            color: "#00d2ff"
+        };
 
-    window.addEventListener('mousemove', handleInput);
-    window.addEventListener('touchmove', (e) => { e.preventDefault(); handleInput(e); }, {passive: false});
+        const p2 = {
+            y: 250, w: 15, h: 100, score: 0,
+            moveUp: false, moveDown: false,
+            color: "#ff007f"
+        };
 
-    function initGame(m, difficulty) {
-        mode = m;
-        botLevel = difficulty || 0.05;
-        document.getElementById("main-menu").style.display = "none";
-        isRunning = true;
-        resetBall();
-        gameLoop();
-    }
+        // --- CONTROLES ---
+        window.addEventListener("keydown", e => keys[e.code] = true);
+        window.addEventListener("keyup", e => keys[e.code] = false);
 
-    function resetBall() {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        ball.speed = 7;
-        ball.vX = (Math.random() > 0.5 ? 1 : -1) * ball.speed;
-        ball.vY = (Math.random() - 0.5) * 10;
-    }
+        function processInputs() {
+            // Player 1: W (87), S (83)
+            if (keys['KeyW'] && p1.y > 0) p1.y -= 8;
+            if (keys['KeyS'] && p1.y < canvas.height - p1.h) p1.y += 8;
 
-    function collision(b, p) {
-        return b.x + b.r > p.x && b.x - b.r < p.x + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
-    }
-
-    function update() {
-        if(!isRunning) return;
-
-        // Movimento da bola
-        ball.x += ball.vX;
-        ball.y += ball.vY;
-
-        // IA do Oponente (se estiver no modo BOT)
-        if(mode === 'bot') {
-            let targetY = ball.y - opponent.h / 2;
-            opponent.y += (targetY - opponent.y) * botLevel;
-        }
-
-        // Colisão com teto e chão
-        if(ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) {
-            ball.vY *= -1;
-            spawnParticles(ball.x, ball.y, "#fff");
+            // Player 2: ArrowUp, ArrowDown
+            if (gameMode === 'pvp') {
+                if (keys['ArrowUp'] && p2.y > 0) p2.y -= 8;
+                if (keys['ArrowDown'] && p2.y < canvas.height - p2.h) p2.y += 8;
+            } else {
+                // Inteligência Artificial (Bot)
+                let botCenter = p2.y + p2.h / 2;
+                if (botCenter < ball.y - 35) p2.y += 6;
+                if (botCenter > ball.y + 35) p2.y -= 6;
+            }
         }
 
-        // Verificação de qual lado a bola está para colisão
-        let activePlayer = (ball.x < canvas.width / 2) ? player : opponent;
+        // --- LÓGICA DE UI ---
+        function showRoundSelector(mode) {
+            gameMode = mode;
+            document.getElementById('menu-main').classList.add('hidden');
+            document.getElementById('menu-rounds').classList.remove('hidden');
+        }
 
-        if(collision(ball, activePlayer)) {
-            // Calcula ponto de impacto para mudar o ângulo
-            let collidePoint = (ball.y - (activePlayer.y + activePlayer.h/2)) / (activePlayer.h/2);
-            let angle = (Math.PI/4) * collidePoint;
-            let direction = (ball.x < canvas.width/2) ? 1 : -1;
+        function backToMain() {
+            location.reload(); // Forma mais limpa de resetar tudo
+        }
 
-            ball.vX = direction * ball.speed * Math.cos(angle);
-            ball.vY = ball.speed * Math.sin(angle);
+        function initGame(rounds) {
+            targetRounds = rounds;
+            document.getElementById('menu-rounds').classList.add('hidden');
+            header.style.display = 'flex';
+            canvas.style.display = 'block';
+            document.getElementById('round-info').innerText = rounds === 1 ? "RODADA ÚNICA" : `MELHOR DE ${rounds}`;
             
-            ball.speed += 0.3; // Aumenta velocidade gradualmente
-            spawnParticles(ball.x, ball.y, activePlayer.color);
+            p1.score = 0; p2.score = 0;
+            isRunning = true;
+            ball.reset();
+            gameLoop();
         }
 
-        // Sistema de Pontuação
-        if(ball.x < 0) {
-            opponent.score++;
-            updateScore();
-            resetBall();
-        } else if(ball.x > canvas.width) {
-            player.score++;
-            updateScore();
-            resetBall();
+        function checkWinCondition() {
+            let winScore = Math.ceil(targetRounds / 2);
+            if (targetRounds === 1) winScore = 1;
+
+            if (p1.score >= winScore || p2.score >= winScore) {
+                isRunning = false;
+                const winner = p1.score > p2.score ? "PLAYER 1" : (gameMode === 'bot' ? "BOT" : "PLAYER 2");
+                showWinnerPanel(winner);
+            }
         }
 
-        // Atualiza partículas
-        particles.forEach((p, i) => {
-            p.x += p.vX; p.y += p.vY; p.alpha -= 0.02;
-            if(p.alpha <= 0) particles.splice(i, 1);
-        });
-    }
+        function showWinnerPanel(winner) {
+            header.style.display = 'none';
+            document.getElementById('menu-winner').classList.remove('hidden');
+            document.getElementById('winner-text').innerText = `${winner} VENCEU!`;
+            document.getElementById('winner-sub').innerText = `${p1.score} vs ${p2.score}`;
+        }
 
-    function updateScore() {
-        document.getElementById("p1-score").innerText = player.score;
-        document.getElementById("p2-score").innerText = opponent.score;
-    }
+        function restartCurrentMode() {
+            document.getElementById('menu-winner').classList.add('hidden');
+            initGame(targetRounds);
+        }
 
-    function draw() {
-        // Limpa tela
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // --- ENGINE CORE ---
+        function update() {
+            if (!isRunning) return;
 
-        // Desenha Rede
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
-        ctx.setLineDash([10, 15]);
-        ctx.beginPath();
-        ctx.moveTo(canvas.width/2, 0);
-        ctx.lineTo(canvas.width/2, canvas.height);
-        ctx.stroke();
+            processInputs();
 
-        // Desenha Raquetes com brilho
-        drawPaddle(player.x, player.y, player.w, player.h, player.color);
-        drawPaddle(opponent.x, opponent.y, opponent.w, opponent.h, opponent.color);
+            ball.x += ball.vX;
+            ball.y += ball.vY;
 
-        // Desenha Bola
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
-        ctx.fill();
+            // Colisão Paredes
+            if (ball.y < 0 || ball.y > canvas.height) ball.vY *= -1;
 
-        // Desenha Partículas
-        particles.forEach(p => {
-            ctx.globalAlpha = p.alpha;
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, 3, 3);
-        });
-        ctx.globalAlpha = 1.0;
-    }
+            // Colisão Raquetes
+            let activePaddle = (ball.x < canvas.width / 2) ? p1 : p2;
+            let paddleX = (ball.x < canvas.width / 2) ? 25 : canvas.width - 25 - p2.w;
 
-    function drawPaddle(x, y, w, h, color) {
-        ctx.fillStyle = color;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = color;
-        ctx.fillRect(x, y, w, h);
-        ctx.shadowBlur = 0;
-    }
+            if (collision(ball, activePaddle, paddleX)) {
+                let collidePoint = (ball.y - (activePaddle.y + activePaddle.h / 2)) / (activePaddle.h / 2);
+                let angle = (Math.PI / 4) * collidePoint;
+                let dir = (ball.x < canvas.width / 2) ? 1 : -1;
 
-    function gameLoop() {
-        update();
-        draw();
-        requestAnimationFrame(gameLoop);
-    }
-</script>
+                ball.vX = dir * ball.speed * Math.cos(angle);
+                ball.vY = ball.speed * Math.sin(angle);
+                ball.speed += 0.5;
+            }
+
+            // Placar
+            if (ball.x < 0) {
+                p2.score++;
+                ball.reset();
+                checkWinCondition();
+            } else if (ball.x > canvas.width) {
+                p1.score++;
+                ball.reset();
+                checkWinCondition();
+            }
+
+            document.getElementById('p1-score').innerText = p1.score;
+            document.getElementById('p2-score').innerText = p2.score;
+        }
+
+        function collision(b, p, px) {
+            return b.x + b.r > px && b.x - b.r < px + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
+        }
+
+        function draw() {
+            // Fundo
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Linha Central
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            ctx.setLineDash([10, 15]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+
+            // Raquetes
+            drawRect(25, p1.y, p1.w, p1.h, p1.color);
+            drawRect(canvas.width - 25 - p2.w, p2.y, p2.w, p2.h, p2.color);
+
+            // Bola
+            ctx.fillStyle = "#fff";
+            ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            if (!isRunning) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
 </body>
 </html>
