@@ -2,247 +2,271 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING ENGINE | OMNIPOTENCE v11</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>KING OS | SINGULARITY v12</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=JetBrains+Mono:wght@300;700&display=swap" rel="stylesheet">
     <style>
-        :root { --p1: #00f2ff; --p2: #ff007f; --bg: #010101; --accent: #ffcc00; }
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; overflow: hidden; }
+        :root { --p1: #00f2ff; --p2: #ff007f; --bg: #000; --neon: #00ff41; }
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
         
         body { 
-            background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace;
-            height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: #000; color: #fff; font-family: 'JetBrains Mono', monospace;
+            height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
-        #viewport {
-            position: relative; width: 1200px; height: 750px;
-            background: radial-gradient(circle at center, #080808 0%, #000 100%);
-            border: 2px solid #111; box-shadow: 0 0 100px rgba(0,0,0,1);
+        #core-engine {
+            position: relative; width: 1250px; height: 750px;
+            background: #000; border: 1px solid #111;
+            box-shadow: 0 0 150px rgba(0, 242, 255, 0.03);
         }
 
-        /* SCANNER BIOMÉTRICO INICIAL */
-        .overlay { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        /* OVERLAYS */
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(40px); }
         .hidden { display: none !important; }
-        
-        #scan-box { width: 300px; height: 300px; border: 1px solid var(--p1); position: relative; display: flex; align-items: center; justify-content: center; }
-        #scan-bar { position: absolute; width: 100%; height: 4px; background: var(--p1); box-shadow: 0 0 20px var(--p1); animation: scan 2s infinite linear; }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* HUD - CINEMATOGRÁFICO */
+        /* BOOT ANIMATION */
+        #boot-loader { width: 400px; text-align: left; font-size: 12px; color: var(--p1); }
+        .progress-bar { width: 0%; height: 2px; background: var(--p1); box-shadow: 0 0 15px var(--p1); margin-top: 10px; transition: 0.5s; }
+
+        /* HUD - SUPREMACIA VISUAL */
         #hud {
-            position: absolute; inset: 0; pointer-events: none; padding: 50px;
-            display: none; justify-content: space-between; align-items: flex-start; z-index: 100;
+            position: absolute; top: 0; width: 100%; display: none;
+            justify-content: space-between; padding: 50px 120px; z-index: 100;
         }
-        .score-val { font-family: 'Syncopate'; font-size: 8rem; line-height: 0.7; letter-spacing: -10px; filter: drop-shadow(0 0 30px currentColor); }
-        .data-label { font-size: 10px; color: #444; letter-spacing: 5px; margin-top: 10px; text-transform: uppercase; }
-
-        /* MENU DE COMANDO */
-        .btn-king {
-            width: 400px; padding: 25px; margin: 15px; background: transparent; color: #fff;
-            border: 1px solid #333; font-family: 'Syncopate'; font-size: 11px; letter-spacing: 6px;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .score-wrap { text-align: center; perspective: 1000px; }
+        .score-val { 
+            font-family: 'Syncopate'; font-size: 9rem; line-height: 0.7; 
+            background: linear-gradient(to bottom, #fff, #333);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
         }
-        .btn-king:hover { 
-            background: #fff; color: #000; box-shadow: 0 0 60px var(--p1); 
-            transform: scale(1.05) rotateX(10deg); 
+        .tag { font-size: 10px; letter-spacing: 10px; color: #444; margin-top: 20px; font-weight: 700; }
+
+        /* BUTTONS */
+        .king-btn {
+            width: 420px; padding: 25px; margin: 15px; background: transparent; color: #fff;
+            border: 1px solid #222; font-family: 'Syncopate'; font-size: 12px; letter-spacing: 8px;
+            cursor: pointer; position: relative; overflow: hidden; transition: 0.3s;
+        }
+        .king-btn:hover { background: #fff; color: #000; box-shadow: 0 0 80px var(--p1); transform: translateY(-5px); }
+
+        canvas { display: block; filter: contrast(1.2) saturate(1.3); }
+        
+        #pao-fx { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Syncopate'; font-size: 8rem; opacity: 0; z-index: 3000;
+            pointer-events: none; text-shadow: 0 0 50px var(--p1);
         }
 
-        canvas { display: block; filter: contrast(1.1) saturate(1.2); }
-        #fx-msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-family: 'Syncopate'; font-size: 5rem; opacity: 0; pointer-events: none; z-index: 500; }
-
-        /* MOUSE CROSSHAIR */
-        #crosshair-h { position: fixed; height: 1px; width: 100vw; background: rgba(0, 242, 255, 0.1); pointer-events: none; z-index: 2000; }
-        #crosshair-v { position: fixed; width: 1px; height: 100vh; background: rgba(0, 242, 255, 0.1); pointer-events: none; z-index: 2000; }
+        /* CURSOR CROSSHAIR */
+        .ch { position: fixed; background: rgba(0, 242, 255, 0.15); pointer-events: none; z-index: 5000; }
+        #ch-v { width: 1px; height: 100vh; }
+        #ch-h { height: 1px; width: 100vw; }
     </style>
 </head>
 <body>
 
-<div id="crosshair-h"></div>
-<div id="crosshair-v"></div>
+<div id="ch-v" class="ch"></div>
+<div id="ch-h" class="ch"></div>
 
-<div id="viewport">
+<div id="core-engine">
     <div id="scr-boot" class="overlay">
-        <div id="scan-box"><div id="scan-bar"></div><span style="letter-spacing: 5px; font-size: 12px; color: var(--p1);">SCANNING KING...</span></div>
-        <div id="boot-log" style="margin-top: 30px; font-size: 10px; color: #222; text-align: center;">ROOT@KING_ACADEMY:~$ <span id="log-text"></span></div>
+        <div id="boot-loader">
+            <div id="boot-text">> INICIALIZANDO PROTOCOLO SINGULARITY...</div>
+            <div class="progress-bar" id="p-bar"></div>
+            <div style="margin-top: 20px; color: #333; font-size: 9px;">DEVELOPED BY KING DEV ACADEMY © 2026</div>
+        </div>
     </div>
 
     <div id="scr-menu" class="overlay hidden">
-        <h1 style="font-family: 'Syncopate'; font-size: 3rem; margin-bottom: 50px;">KING_ENGINE <span style="color: var(--p2)">V11</span></h1>
-        <button class="btn-king" onclick="Engine.start('ia')">NEURAL_IA_OVERRIDE</button>
-        <button class="btn-king" onclick="Engine.start('pvp')" style="border-color: var(--p2)">DUAL_PILOT_PVP</button>
-        <p style="margin-top: 40px; font-size: 9px; opacity: 0.2;">LICENÇA PERMANENTE: KING DEV ACADEMY SENIOR</p>
+        <div style="margin-bottom: 50px; text-align: center;">
+            <h1 style="font-family: 'Syncopate'; font-size: 3.5rem; letter-spacing: -5px;">KING<span style="color: var(--p2)">_CORE</span></h1>
+            <p style="color: var(--p1); font-size: 10px; letter-spacing: 15px;">SUPREMACY EDITION</p>
+        </div>
+        <button class="king-btn" onclick="Engine.init('ia')">A.I. DOMINATION</button>
+        <button class="king-btn" onclick="Engine.init('pvp')" style="border-color: var(--p2)">LOCAL_DUEL_v2</button>
     </div>
 
     <div id="hud">
-        <div style="color: var(--p1)"><div id="s1" class="score-val">0</div><div class="data-label">PILOT_01_CORE</div></div>
-        <div style="color: var(--p2); text-align: right;"><div id="s2" class="score-val">0</div><div id="label-p2" class="data-label">AI_SUBSYSTEM</div></div>
+        <div class="score-wrap" style="color: var(--p1)"><div id="s1" class="score-val">0</div><div class="tag">KING_OPERATOR</div></div>
+        <div class="score-wrap" style="color: var(--p2)"><div id="s2" class="score-val">0</div><div id="tag-p2" class="tag">NEURAL_BOT</div></div>
     </div>
 
-    <div id="fx-msg">PÃO 👍</div>
-    <canvas id="canvas" width="1200" height="750"></canvas>
+    <div id="pao-fx">PÃO 👍</div>
+    <canvas id="canvas" width="1250" height="750"></canvas>
 </div>
 
 <script>
+/**
+ * KING ENGINE v12 - SINGULARITY
+ * O Código que salva impérios.
+ */
+
 const Engine = {
     active: false, mode: 'ia',
     cvs: null, ctx: null,
-    ball: { x: 600, y: 375, vx: 0, vy: 0, r: 12, trail: [] },
+    ball: { x: 625, y: 375, vx: 0, vy: 0, trail: [] },
     p1: { y: 320, s: 0 }, p2: { y: 320, s: 0, err: 0 },
-    keys: {}, particles: [], shake: 0, combo: 0,
+    keys: {}, fx: [], shake: 0, combo: 0,
 
-    boot() {
-        const lines = ["BYPASSING FIREWALL...", "ESTABLISHING NEURAL LINK...", "OMNIPOTENCE PROTOCOL ACTIVE."];
-        let i = 0;
-        const interval = setInterval(() => {
-            document.getElementById('log-text').innerText = lines[i];
-            i++; if(i >= lines.length) {
-                clearInterval(interval);
+    bootSequence() {
+        const bar = document.getElementById('p-bar');
+        const txt = document.getElementById('boot-text');
+        let p = 0;
+        const itv = setInterval(() => {
+            p += Math.random() * 15;
+            if(p >= 100) {
+                p = 100; clearInterval(itv);
                 setTimeout(() => {
                     document.getElementById('scr-boot').classList.add('hidden');
                     document.getElementById('scr-menu').classList.remove('hidden');
-                }, 1000);
+                }, 800);
             }
-        }, 800);
+            bar.style.width = p + '%';
+            if(p > 30) txt.innerText = "> CARREGANDO MÓDULOS NEURAIS...";
+            if(p > 70) txt.innerText = "> ESTABELECENDO SOBERANIA...";
+        }, 150);
     },
 
-    start(m) {
+    init(m) {
         this.mode = m;
         this.cvs = document.getElementById('canvas');
         this.ctx = this.cvs.getContext('2d');
         document.getElementById('scr-menu').classList.add('hidden');
         document.getElementById('hud').style.display = 'flex';
-        if(m === 'pvp') document.getElementById('label-p2').innerText = "PILOT_02_CORE";
+        if(m === 'pvp') document.getElementById('tag-p2').innerText = "OPERATOR_02";
 
         window.addEventListener('keydown', e => this.keys[e.code] = true);
         window.addEventListener('keyup', e => this.keys[e.code] = false);
         document.addEventListener('mousemove', e => {
-            document.getElementById('crosshair-h').style.top = e.clientY + 'px';
-            document.getElementById('crosshair-v').style.left = e.clientX + 'px';
+            document.getElementById('ch-v').style.left = e.clientX + 'px';
+            document.getElementById('ch-h').style.top = e.clientY + 'px';
         });
 
         this.active = true; this.resetBall(); this.loop();
     },
 
     resetBall() {
-        this.ball.x = 600; this.ball.y = 375;
-        this.ball.vx = (Math.random() > 0.5 ? 13 : -13);
-        this.ball.vy = (Math.random() - 0.5) * 18;
+        this.ball.x = 625; this.ball.y = 375;
+        this.ball.vx = (Math.random() > 0.5 ? 14 : -14);
+        this.ball.vy = (Math.random() - 0.5) * 20;
         this.ball.trail = []; this.combo = 0;
     },
 
-    spawnFX(x, y, c) {
-        for(let i=0; i<25; i++) {
-            this.particles.push({
-                x, y, vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25, 
-                l: 1.0, c, r: Math.random()*4
+    createFX(x, y, color) {
+        for(let i=0; i<30; i++) {
+            this.fx.push({
+                x, y, 
+                vx: (Math.random()-0.5) * 25, 
+                vy: (Math.random()-0.5) * 25, 
+                l: 1.0, c: color, r: Math.random()*5
             });
         }
     },
 
     update() {
         if(!this.active) return;
-        
-        // Movimento Ultra-Smooth
-        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 20;
-        if(this.keys['KeyS'] && this.p1.y < 620) this.p1.y += 20;
+
+        // Movimento (Física de alta precisão)
+        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 22;
+        if(this.keys['KeyS'] && this.p1.y < 610) this.p1.y += 22;
 
         if(this.mode === 'pvp') {
-            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 20;
-            if(this.keys['ArrowDown'] && this.p2.y < 620) this.p2.y += 20;
+            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 22;
+            if(this.keys['ArrowDown'] && this.p2.y < 610) this.p2.y += 22;
         } else {
             let target = this.ball.y - 65 + this.p2.err;
-            this.p2.y += (target - this.p2.y) * 0.15;
+            this.p2.y += (target - this.p2.y) * 0.16;
         }
 
         this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
         this.ball.trail.push({x: this.ball.x, y: this.ball.y});
-        if(this.ball.trail.length > 25) this.ball.trail.shift();
+        if(this.ball.trail.length > 30) this.ball.trail.shift();
 
-        // Bounds
-        if(this.ball.y < 15 || this.ball.y > 735) { this.ball.vy *= -1; this.shake = 10; }
+        // Colisão Paredes
+        if(this.ball.y < 15 || this.ball.y > 735) { this.ball.vy *= -1; this.shake = 12; }
 
-        // Colisão Vetorial
-        let isP1 = this.ball.x < 600;
+        // Colisão Raquetes
+        let isP1 = this.ball.x < 625;
         let pad = isP1 ? this.p1 : this.p2;
-        let px = isP1 ? 50 : 1135;
+        let px = isP1 ? 60 : 1175;
 
         if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > pad.y && this.ball.y < pad.y+130) {
-            this.ball.vx *= -1.06;
-            this.ball.vy = (this.ball.y - (pad.y+65)) * 0.45;
+            this.ball.vx *= -1.07;
+            this.ball.vy = (this.ball.y - (pad.y+65)) * 0.5;
             this.combo++;
-            this.shake = 15 + this.combo;
-            this.spawnFX(this.ball.x, this.ball.y, isP1 ? varP1 : varP2); // Cor dinâmica
-            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*110;
+            this.shake = 15 + (this.combo * 2);
+            this.createFX(this.ball.x, this.ball.y, isP1 ? '#00f2ff' : '#ff007f');
+            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*120;
         }
 
         if(this.ball.x < 0) this.score(2);
-        if(this.ball.x > 1200) this.score(1);
+        if(this.ball.x > 1250) this.score(1);
 
-        this.particles.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.l -= 0.02;
-            if(p.l <= 0) this.particles.splice(i, 1);
-        });
-        if(this.shake > 0) this.shake *= 0.9;
+        this.fx.forEach((f, i) => { f.x += f.vx; f.y += f.vy; f.l -= 0.025; if(f.l <= 0) this.fx.splice(i, 1); });
+        if(this.shake > 0) this.shake *= 0.85;
     },
 
     score(p) {
         p === 1 ? this.p1.s++ : this.p2.s++;
         document.getElementById('s1').innerText = this.p1.s;
         document.getElementById('s2').innerText = this.p2.s;
-        this.active = false; this.shake = 50;
+        this.active = false; this.shake = 60;
         
-        const msg = document.getElementById('fx-msg');
-        msg.innerText = (this.p1.s >= 10) ? "PÃO 👍" : "CRITICAL_HIT";
-        msg.style.opacity = 1; msg.style.color = p === 1 ? '#00f2ff' : '#ff007f';
+        const pao = document.getElementById('pao-fx');
+        if(this.p1.s >= 10) { pao.style.opacity = 1; pao.style.transform = "translate(-50%, -50%) scale(1.5)"; }
         
         setTimeout(() => {
-            msg.opacity = 0; 
+            pao.style.opacity = 0;
             if(this.p1.s >= 10 || this.p2.s >= 10) location.reload();
             else { this.active = true; this.resetBall(); this.loop(); }
-        }, 1200);
+        }, 1500);
     },
 
     draw() {
         const ctx = this.ctx; ctx.save();
-        if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-        
-        // Campo
-        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1200,750);
+        if(this.shake > 0.5) {
+            ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
+            // Efeito de Aberração Cromática Simulado
+            ctx.globalAlpha = 0.5; ctx.fillStyle = '#f00'; ctx.fillRect(2,2,1250,750); ctx.globalAlpha = 1;
+        }
 
-        // Grid Cyberpunk
-        ctx.strokeStyle = '#0a0a0a';
-        for(let i=0; i<1200; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,750); ctx.stroke(); }
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1250,750);
 
-        // Bloom Trail
+        // Grid Profundo
+        ctx.strokeStyle = '#080808'; ctx.lineWidth = 1;
+        for(let i=0; i<1250; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,750); ctx.stroke(); }
+
+        // Trail Luminoso
         this.ball.trail.forEach((t, i) => {
-            ctx.fillStyle = `rgba(0, 242, 255, ${i/60})`;
-            ctx.beginPath(); ctx.arc(t.x, t.y, (i/25)*15, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(0, 242, 255, ${i/80})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, (i/30)*20, 0, Math.PI*2); ctx.fill();
         });
 
-        // Glow FX Raquetes
-        ctx.shadowBlur = 30 + this.combo;
-        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(50, this.p1.y, 15, 130);
-        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1135, this.p2.y, 15, 130);
-        
-        // Ball - Core
+        // Raquetes com Glow
+        ctx.shadowBlur = 30 + (this.combo * 5);
+        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(60, this.p1.y, 15, 130);
+        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1175, this.p2.y, 15, 130);
+
+        // Ball Core
         ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
         ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 12, 0, Math.PI*2); ctx.fill();
 
-        // Partículas Sub-Atômicas
+        // FX Particles
         ctx.shadowBlur = 0;
-        this.particles.forEach(p => {
-            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+        this.fx.forEach(f => {
+            ctx.globalAlpha = f.l; ctx.fillStyle = f.c;
+            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
         });
 
         ctx.restore();
+    },
+
+    loop() {
+        if(this.active) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); }
     }
 };
 
-const varP1 = '#00f2ff'; const varP2 = '#ff007f';
-Engine.loop = function() {
-    if(this.active) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); }
-};
-window.onload = () => Engine.boot();
+window.onload = () => Engine.bootSequence();
 </script>
 </body>
 </html>
