@@ -2,240 +2,247 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING CORE | NEURAL PONG v9.0</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <title>KING ENGINE | OMNIPOTENCE v11</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #00f2ff; --alt: #ff007f; --bg: #030303; }
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
+        :root { --p1: #00f2ff; --p2: #ff007f; --bg: #010101; --accent: #ffcc00; }
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; overflow: hidden; }
+        
         body { 
             background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace;
-            height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
+            height: 100vh; display: flex; align-items: center; justify-content: center;
         }
-        #stage { position: relative; width: 1150px; height: 650px; background: #000; border: 1px solid #1a1a1a; }
-        
-        /* OVERLAYS SYSTEM */
+
+        #viewport {
+            position: relative; width: 1200px; height: 750px;
+            background: radial-gradient(circle at center, #080808 0%, #000 100%);
+            border: 2px solid #111; box-shadow: 0 0 100px rgba(0,0,0,1);
+        }
+
+        /* SCANNER BIOMÉTRICO INICIAL */
         .overlay { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
+        
+        #scan-box { width: 300px; height: 300px; border: 1px solid var(--p1); position: relative; display: flex; align-items: center; justify-content: center; }
+        #scan-bar { position: absolute; width: 100%; height: 4px; background: var(--p1); box-shadow: 0 0 20px var(--p1); animation: scan 2s infinite linear; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* LOADING ANIMATION */
-        #loader { font-size: 14px; color: var(--main); line-height: 1.5; text-align: left; width: 400px; }
-        .cursor-blink { animation: blink 0.8s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* HUD - PROFESSIONAL INTERFACE */
+        /* HUD - CINEMATOGRÁFICO */
         #hud {
-            position: absolute; top: 0; width: 100%; display: none;
-            justify-content: space-between; padding: 30px 100px; z-index: 100;
+            position: absolute; inset: 0; pointer-events: none; padding: 50px;
+            display: none; justify-content: space-between; align-items: flex-start; z-index: 100;
         }
-        .score-display { text-align: center; }
-        .val { font-family: 'Orbitron'; font-size: 7rem; font-weight: 900; line-height: 0.8; letter-spacing: -5px; }
-        .label { font-size: 10px; letter-spacing: 5px; color: #555; margin-top: 15px; }
+        .score-val { font-family: 'Syncopate'; font-size: 8rem; line-height: 0.7; letter-spacing: -10px; filter: drop-shadow(0 0 30px currentColor); }
+        .data-label { font-size: 10px; color: #444; letter-spacing: 5px; margin-top: 10px; text-transform: uppercase; }
 
-        /* BUTTONS */
-        .btn-core {
-            width: 320px; padding: 20px; margin: 10px; background: transparent;
-            color: #fff; border: 1px solid #222; font-family: 'Orbitron'; font-weight: 900;
-            letter-spacing: 4px; cursor: pointer; transition: 0.2s;
+        /* MENU DE COMANDO */
+        .btn-king {
+            width: 400px; padding: 25px; margin: 15px; background: transparent; color: #fff;
+            border: 1px solid #333; font-family: 'Syncopate'; font-size: 11px; letter-spacing: 6px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .btn-core:hover { background: #fff; color: #000; box-shadow: 0 0 40px var(--main); }
+        .btn-king:hover { 
+            background: #fff; color: #000; box-shadow: 0 0 60px var(--p1); 
+            transform: scale(1.05) rotateX(10deg); 
+        }
 
-        #msg-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 6rem; font-weight: 900; opacity: 0; z-index: 200; pointer-events: none; }
-        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
-        #custom-pointer { position: fixed; width: 15px; height: 15px; background: #fff; border-radius: 50%; pointer-events: none; z-index: 2000; mix-blend-mode: difference; }
+        canvas { display: block; filter: contrast(1.1) saturate(1.2); }
+        #fx-msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-family: 'Syncopate'; font-size: 5rem; opacity: 0; pointer-events: none; z-index: 500; }
+
+        /* MOUSE CROSSHAIR */
+        #crosshair-h { position: fixed; height: 1px; width: 100vw; background: rgba(0, 242, 255, 0.1); pointer-events: none; z-index: 2000; }
+        #crosshair-v { position: fixed; width: 1px; height: 100vh; background: rgba(0, 242, 255, 0.1); pointer-events: none; z-index: 2000; }
     </style>
 </head>
 <body>
 
-<div id="custom-pointer"></div>
+<div id="crosshair-h"></div>
+<div id="crosshair-v"></div>
 
-<div id="stage">
+<div id="viewport">
     <div id="scr-boot" class="overlay">
-        <div id="loader">
-            <div>> INITIALIZING KING_OS...</div>
-            <div id="load-1"></div>
-            <div id="load-2"></div>
-            <div id="load-3"></div>
-            <div style="margin-top: 20px;">SYSTEM STATUS: <span style="color: #0f0;">READY</span> <span class="cursor-blink">_</span></div>
-        </div>
+        <div id="scan-box"><div id="scan-bar"></div><span style="letter-spacing: 5px; font-size: 12px; color: var(--p1);">SCANNING KING...</span></div>
+        <div id="boot-log" style="margin-top: 30px; font-size: 10px; color: #222; text-align: center;">ROOT@KING_ACADEMY:~$ <span id="log-text"></span></div>
     </div>
 
     <div id="scr-menu" class="overlay hidden">
-        <h1 style="font-family: 'Orbitron'; font-size: 3rem; margin-bottom: 30px;">KING_CORE <span style="color: var(--alt)">v9.0</span></h1>
-        <button class="btn-core" onclick="Engine.init('ia')">LOCAL_IA_LINK</button>
-        <button class="btn-core" onclick="Engine.init('pvp')" style="border-color: var(--alt)">DUAL_CORE_PVP</button>
-        <p style="margin-top: 30px; font-size: 10px; color: #333;">AUTHORIZATION: KING DEV ACADEMY SENIOR</p>
+        <h1 style="font-family: 'Syncopate'; font-size: 3rem; margin-bottom: 50px;">KING_ENGINE <span style="color: var(--p2)">V11</span></h1>
+        <button class="btn-king" onclick="Engine.start('ia')">NEURAL_IA_OVERRIDE</button>
+        <button class="btn-king" onclick="Engine.start('pvp')" style="border-color: var(--p2)">DUAL_PILOT_PVP</button>
+        <p style="margin-top: 40px; font-size: 9px; opacity: 0.2;">LICENÇA PERMANENTE: KING DEV ACADEMY SENIOR</p>
     </div>
 
     <div id="hud">
-        <div class="score-display" style="color: var(--main)">
-            <div id="s1" class="val">0</div><div class="label">KING_OPERATOR</div>
-        </div>
-        <div class="score-display" style="color: var(--alt)">
-            <div id="s2" class="val">0</div><div id="p2-tag" class="label">NEURAL_BOT</div>
-        </div>
+        <div style="color: var(--p1)"><div id="s1" class="score-val">0</div><div class="data-label">PILOT_01_CORE</div></div>
+        <div style="color: var(--p2); text-align: right;"><div id="s2" class="score-val">0</div><div id="label-p2" class="data-label">AI_SUBSYSTEM</div></div>
     </div>
 
-    <div id="msg-box">POINT</div>
-    <canvas id="canvas" width="1150" height="650"></canvas>
+    <div id="fx-msg">PÃO 👍</div>
+    <canvas id="canvas" width="1200" height="750"></canvas>
 </div>
 
 <script>
-/**
- * KING NEURAL ENGINE - HIGH PERFORMANCE
- */
-
-const AudioCore = {
-    ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    out(f, d, t='square', v=0.05) {
-        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-        o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
-        g.gain.setValueAtTime(v, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + d);
-        o.connect(g); g.connect(this.ctx.destination);
-        o.start(); o.stop(this.ctx.currentTime + d);
-    }
-};
-
 const Engine = {
-    active: false, paused: false, mode: 'ia',
+    active: false, mode: 'ia',
     cvs: null, ctx: null,
-    ball: { x: 575, y: 325, vx: 0, vy: 0, trail: [] },
-    p1: { y: 275, s: 0 }, p2: { y: 275, s: 0, err: 0 },
-    keys: {}, fx: [], shake: 0,
+    ball: { x: 600, y: 375, vx: 0, vy: 0, r: 12, trail: [] },
+    p1: { y: 320, s: 0 }, p2: { y: 320, s: 0, err: 0 },
+    keys: {}, particles: [], shake: 0, combo: 0,
 
-    bootSequence() {
-        const lines = [
-            {id: 'load-1', text: '> LOADING KERNEL... OK', delay: 500},
-            {id: 'load-2', text: '> MOUNTING NEURAL_NET... OK', delay: 1200},
-            {id: 'load-3', text: '> ESTABLISHING KING_ACADEMY_LINK... OK', delay: 2000}
-        ];
-        lines.forEach(l => {
-            setTimeout(() => { document.getElementById(l.id).innerText = l.text; }, l.delay);
-        });
-        setTimeout(() => {
-            document.getElementById('scr-boot').classList.add('hidden');
-            document.getElementById('scr-menu').classList.remove('hidden');
-        }, 2800);
+    boot() {
+        const lines = ["BYPASSING FIREWALL...", "ESTABLISHING NEURAL LINK...", "OMNIPOTENCE PROTOCOL ACTIVE."];
+        let i = 0;
+        const interval = setInterval(() => {
+            document.getElementById('log-text').innerText = lines[i];
+            i++; if(i >= lines.length) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    document.getElementById('scr-boot').classList.add('hidden');
+                    document.getElementById('scr-menu').classList.remove('hidden');
+                }, 1000);
+            }
+        }, 800);
     },
 
-    init(m) {
+    start(m) {
         this.mode = m;
         this.cvs = document.getElementById('canvas');
         this.ctx = this.cvs.getContext('2d');
         document.getElementById('scr-menu').classList.add('hidden');
         document.getElementById('hud').style.display = 'flex';
-        if(m === 'pvp') document.getElementById('p2-tag').innerText = "OPERATOR_02";
-        
-        window.addEventListener('keydown', e => { this.keys[e.code] = true; });
+        if(m === 'pvp') document.getElementById('label-p2').innerText = "PILOT_02_CORE";
+
+        window.addEventListener('keydown', e => this.keys[e.code] = true);
         window.addEventListener('keyup', e => this.keys[e.code] = false);
         document.addEventListener('mousemove', e => {
-            const p = document.getElementById('custom-pointer');
-            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            document.getElementById('crosshair-h').style.top = e.clientY + 'px';
+            document.getElementById('crosshair-v').style.left = e.clientX + 'px';
         });
 
-        this.active = true; this.reset(); this.loop();
+        this.active = true; this.resetBall(); this.loop();
     },
 
-    reset() {
-        this.ball.x = 575; this.ball.y = 325;
-        this.ball.vx = (Math.random() > 0.5 ? 11 : -11);
-        this.ball.vy = (Math.random() - 0.5) * 14;
-        this.ball.trail = [];
+    resetBall() {
+        this.ball.x = 600; this.ball.y = 375;
+        this.ball.vx = (Math.random() > 0.5 ? 13 : -13);
+        this.ball.vy = (Math.random() - 0.5) * 18;
+        this.ball.trail = []; this.combo = 0;
+    },
+
+    spawnFX(x, y, c) {
+        for(let i=0; i<25; i++) {
+            this.particles.push({
+                x, y, vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25, 
+                l: 1.0, c, r: Math.random()*4
+            });
+        }
     },
 
     update() {
-        if(!this.active || this.paused) return;
-
-        // Player Controls (Smoothed)
-        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 15;
-        if(this.keys['KeyS'] && this.p1.y < 530) this.p1.y += 15;
+        if(!this.active) return;
+        
+        // Movimento Ultra-Smooth
+        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 20;
+        if(this.keys['KeyS'] && this.p1.y < 620) this.p1.y += 20;
 
         if(this.mode === 'pvp') {
-            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 15;
-            if(this.keys['ArrowDown'] && this.p2.y < 530) this.p2.y += 15;
+            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 20;
+            if(this.keys['ArrowDown'] && this.p2.y < 620) this.p2.y += 20;
         } else {
-            let target = this.ball.y - 55 + this.p2.err;
-            this.p2.y += (target - this.p2.y) * 0.12;
+            let target = this.ball.y - 65 + this.p2.err;
+            this.p2.y += (target - this.p2.y) * 0.15;
         }
 
         this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
         this.ball.trail.push({x: this.ball.x, y: this.ball.y});
-        if(this.ball.trail.length > 15) this.ball.trail.shift();
+        if(this.ball.trail.length > 25) this.ball.trail.shift();
 
-        // Wall Logic
-        if(this.ball.y < 15 || this.ball.y > 635) { 
-            this.ball.vy *= -1; this.shake = 6; 
-            AudioCore.out(120, 0.1, 'sine');
-        }
+        // Bounds
+        if(this.ball.y < 15 || this.ball.y > 735) { this.ball.vy *= -1; this.shake = 10; }
 
-        // Paddle Collision
-        let isP1 = this.ball.x < 575;
+        // Colisão Vetorial
+        let isP1 = this.ball.x < 600;
         let pad = isP1 ? this.p1 : this.p2;
-        let px = isP1 ? 40 : 1095;
+        let px = isP1 ? 50 : 1135;
 
-        if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > pad.y && this.ball.y < pad.y+110) {
-            this.ball.vx *= -1.05;
-            this.ball.vy = (this.ball.y - (pad.y+55)) * 0.45;
-            this.shake = 12;
-            AudioCore.out(250, 0.1);
-            this.createExplosion(this.ball.x, this.ball.y, isP1 ? '#00f2ff' : '#ff007f');
-            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*80;
+        if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > pad.y && this.ball.y < pad.y+130) {
+            this.ball.vx *= -1.06;
+            this.ball.vy = (this.ball.y - (pad.y+65)) * 0.45;
+            this.combo++;
+            this.shake = 15 + this.combo;
+            this.spawnFX(this.ball.x, this.ball.y, isP1 ? varP1 : varP2); // Cor dinâmica
+            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*110;
         }
 
         if(this.ball.x < 0) this.score(2);
-        if(this.ball.x > 1150) this.score(1);
+        if(this.ball.x > 1200) this.score(1);
 
-        this.fx.forEach((f, i) => { f.x += f.vx; f.y += f.vy; f.l -= 0.04; if(f.l<=0) this.fx.splice(i,1); });
+        this.particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.l -= 0.02;
+            if(p.l <= 0) this.particles.splice(i, 1);
+        });
         if(this.shake > 0) this.shake *= 0.9;
-    },
-
-    createExplosion(x, y, color) {
-        for(let i=0; i<10; i++) this.fx.push({x, y, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, l:1, color});
     },
 
     score(p) {
         p === 1 ? this.p1.s++ : this.p2.s++;
         document.getElementById('s1').innerText = this.p1.s;
         document.getElementById('s2').innerText = this.p2.s;
-        this.active = false; this.shake = 25;
-        AudioCore.out(50, 0.5, 'sawtooth', 0.1);
-        const box = document.getElementById('msg-box');
-        box.style.opacity = 1; box.style.color = p === 1 ? '#00f2ff' : '#ff007f';
-        setTimeout(() => { box.style.opacity = 0; this.active = true; this.reset(); this.loop(); }, 1000);
+        this.active = false; this.shake = 50;
+        
+        const msg = document.getElementById('fx-msg');
+        msg.innerText = (this.p1.s >= 10) ? "PÃO 👍" : "CRITICAL_HIT";
+        msg.style.opacity = 1; msg.style.color = p === 1 ? '#00f2ff' : '#ff007f';
+        
+        setTimeout(() => {
+            msg.opacity = 0; 
+            if(this.p1.s >= 10 || this.p2.s >= 10) location.reload();
+            else { this.active = true; this.resetBall(); this.loop(); }
+        }, 1200);
     },
 
     draw() {
         const ctx = this.ctx; ctx.save();
         if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1150,650);
+        
+        // Campo
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1200,750);
 
-        // Grid (Subtle)
+        // Grid Cyberpunk
         ctx.strokeStyle = '#0a0a0a';
-        for(let i=0; i<1150; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,650); ctx.stroke(); }
+        for(let i=0; i<1200; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,750); ctx.stroke(); }
 
-        // Trail
+        // Bloom Trail
         this.ball.trail.forEach((t, i) => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
-            ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(0, 242, 255, ${i/60})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, (i/25)*15, 0, Math.PI*2); ctx.fill();
         });
 
-        // Paddles
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(40, this.p1.y, 15, 110);
-        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1095, this.p2.y, 15, 110);
+        // Glow FX Raquetes
+        ctx.shadowBlur = 30 + this.combo;
+        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(50, this.p1.y, 15, 130);
+        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1135, this.p2.y, 15, 130);
         
+        // Ball - Core
         ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
-        ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 12, 0, Math.PI*2); ctx.fill();
 
+        // Partículas Sub-Atômicas
         ctx.shadowBlur = 0;
-        this.fx.forEach(f => { ctx.globalAlpha = f.l; ctx.fillStyle = f.color; ctx.fillRect(f.x, f.y, 2, 2); });
-        ctx.restore();
-    },
+        this.particles.forEach(p => {
+            ctx.globalAlpha = p.l; ctx.fillStyle = p.c;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+        });
 
-    loop() { if(this.active && !this.paused) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); } }
+        ctx.restore();
+    }
 };
 
-window.onload = () => Engine.bootSequence();
+const varP1 = '#00f2ff'; const varP2 = '#ff007f';
+Engine.loop = function() {
+    if(this.active) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); }
+};
+window.onload = () => Engine.boot();
 </script>
 </body>
 </html>
