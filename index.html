@@ -3,262 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KING PONG ULTIMATE | PROFESSIONAL GRADE</title>
+    <title>KING PONG | TITAN EDITION 700</title>
     <style>
         :root {
-            --primary: #00f2ff;
-            --secondary: #ff007f;
-            --success: #39ff14;
-            --warning: #ffbd00;
-            --bg-black: #030303;
-            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --p1-neon: #00f2ff;
+            --p2-neon: #ff007f;
+            --accent: #39ff14;
+            --bg-deep: #020202;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --font-stack: 'Segoe UI', 'Orbitron', sans-serif;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background: var(--bg-black);
+            background-color: var(--bg-deep);
             color: #fff;
-            font-family: var(--font-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            font-family: var(--font-stack);
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            user-select: none;
-        }
-
-        /* Camada de efeito Retro CRT (Scanlines) */
-        body::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 200;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
-        /* Container Principal */
-        #game-container {
-            position: relative;
-            width: 1000px;
-            height: 600px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* HUD - Interface em Tempo Real */
-        #game-hud {
-            position: absolute;
-            top: 0; left: 0; width: 100%;
-            display: none;
-            justify-content: space-between;
-            padding: 30px 60px;
-            z-index: 50;
+        /* Efeito de Scanline (TV Antiga) para estilo Academy */
+        .scanlines {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 1000; background-size: 100% 3px, 3px 100%;
             pointer-events: none;
         }
 
-        .hud-player { text-align: center; }
-        .score-num { 
-            font-size: 6rem; 
-            font-weight: 900; 
-            margin: 0; 
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            filter: drop-shadow(0 0 10px currentColor);
-        }
-        .player-label { font-size: 12px; letter-spacing: 3px; opacity: 0.6; text-transform: uppercase; margin-top: 5px; }
-
-        /* Telas de Overlay */
-        .screen {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            transition: opacity 0.5s ease;
-        }
-
-        .screen.hidden { 
-            opacity: 0; 
-            pointer-events: none; 
-            display: none; /* Força remoção para evitar bugs */
-        }
-
-        .panel {
-            background: #0a0a0a;
-            padding: 50px 70px;
-            border-radius: 40px;
-            border: 1px solid #222;
-            text-align: center;
+        #master-container {
             position: relative;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-        }
-
-        .panel::after {
-            content: ''; position: absolute; inset: -2px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            z-index: -1; border-radius: 42px; opacity: 0.3;
-        }
-
-        h1 { 
-            font-size: 4.5rem; 
-            margin: 0; 
-            background: linear-gradient(to right, #fff, #666); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -2px;
-        }
-
-        .menu-options {
-            margin-top: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 280px;
-        }
-
-        /* Botões Estilizados */
-        .btn-king {
-            background: #151515;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 20px;
-            border-radius: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
+            width: 1000px; height: 600px;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        .btn-king:hover {
-            background: #fff;
-            color: #000;
-            transform: scale(1.05) translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.2);
+        /* HUD - TOP INTERFACE */
+        #king-hud {
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: none; justify-content: space-between;
+            padding: 30px 60px; z-index: 100; pointer-events: none;
         }
 
-        .btn-king:active { transform: scale(0.98); }
+        .hud-side { display: flex; flex-direction: column; align-items: center; }
+        .hud-score { font-size: 6rem; font-weight: 900; line-height: 0.8; }
+        .hud-label { font-size: 10px; letter-spacing: 4px; opacity: 0.5; margin-top: 10px; text-transform: uppercase; }
 
-        /* Notificações in-game */
-        #notification-box {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 200;
-            pointer-events: none;
+        /* OVERLAYS (MENUS) */
+        .overlay {
+            position: absolute; inset: 0;
+            background: rgba(2, 2, 2, 0.95);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 500; backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .toast {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px);
-            padding: 10px 30px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.2);
-            font-weight: bold;
-            font-size: 14px;
-            color: var(--success);
-            animation: slideUp 2s forwards;
-            white-space: nowrap;
+        .overlay.hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
+
+        .king-panel {
+            background: #080808;
+            padding: 60px;
+            border-radius: 40px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+            max-width: 450px;
+            position: relative;
         }
 
-        @keyframes slideUp {
-            0% { transform: translateY(20px); opacity: 0; }
-            20% { transform: translateY(0); opacity: 1; }
-            80% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-20px); opacity: 0; }
+        .king-panel::before {
+            content: ''; position: absolute; inset: -1px;
+            background: linear-gradient(45deg, var(--p1-neon), var(--p2-neon));
+            z-index: -1; border-radius: 41px; opacity: 0.2;
         }
 
-        /* Canvas Arena */
-        canvas {
-            background: #000;
-            display: none;
-            border-radius: 4px;
-            box-shadow: 0 0 40px rgba(0,0,0,1);
+        .logo-text {
+            font-size: 4rem; font-weight: 900; margin: 0;
+            background: linear-gradient(to right, #fff, #555);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* Mensagens de Impacto */
+        .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; }
+
+        .king-btn {
+            background: #111; color: #fff; border: 1px solid #333;
+            padding: 18px 40px; border-radius: 12px; font-weight: 800;
+            text-transform: uppercase; cursor: pointer; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .king-btn:hover {
+            background: #fff; color: #000; transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.3);
+        }
+
+        /* CANVAS */
+        #gameCanvas { background: #000; display: block; width: 100%; height: 100%; }
+
+        /* ANNOUNCER GOAL */
         #announcer {
-            position: absolute;
-            font-size: 8rem;
-            font-weight: 900;
-            font-style: italic;
-            z-index: 60;
-            opacity: 0;
-            pointer-events: none;
-            text-transform: uppercase;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            font-size: 8rem; font-weight: 900; opacity: 0; z-index: 200;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; font-style: italic;
         }
+        #announcer.show { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 
     </style>
 </head>
 <body>
 
-    <div id="game-container">
+    <div class="scanlines"></div>
+
+    <div id="master-container">
         
-        <div id="game-hud">
-            <div class="hud-player">
-                <div class="player-label">Academy Cadet</div>
-                <div id="score-p1" class="score-num" style="color: var(--primary)">0</div>
+        <div id="king-hud">
+            <div class="hud-side" style="color: var(--p1-neon)">
+                <div id="score-1" class="hud-score">0</div>
+                <div class="hud-label">King Student</div>
             </div>
-            <div style="align-self: center; text-align: center;">
-                <div id="match-status" style="font-size: 10px; color: #444; letter-spacing: 5px;">BATTLE IN PROGRESS</div>
-            </div>
-            <div class="hud-player">
-                <div class="player-label">Core System</div>
-                <div id="score-p2" class="score-num" style="color: var(--secondary)">0</div>
+            <div class="hud-side" style="color: var(--p2-neon)">
+                <div id="score-2" class="hud-score">0</div>
+                <div class="hud-label">System Core</div>
             </div>
         </div>
 
         <div id="announcer">GOAL!</div>
-        <div id="notification-box"></div>
 
-        <canvas id="main-arena" width="1000" height="600"></canvas>
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
-        <div id="screen-main" class="screen">
-            <div class="panel">
-                <h1>KING PONG</h1>
-                <p style="letter-spacing: 8px; font-size: 11px; opacity: 0.4; margin-top: -10px;">KING DEV ACADEMY PRO</p>
-                <div class="menu-options">
-                    <button class="btn-king" onclick="App.UI.show('screen-difficulty')">Single Player</button>
-                    <button class="btn-king" style="border-color: var(--secondary);" onclick="App.Logic.initGame('pvp')">Local Versus</button>
-                    <div style="font-size: 9px; color: #333; margin-top: 10px;">VERSION 2.0.4 - STABLE BUILD</div>
+        <div id="screen-start" class="overlay">
+            <div class="king-panel">
+                <h1 class="logo-text">KING PONG</h1>
+                <p style="font-size: 10px; letter-spacing: 6px; opacity: 0.5;">ULTIMATE TITAN v2.0</p>
+                <div class="btn-group">
+                    <button class="king-btn" onclick="UI.show('screen-difficulty')">Single Player</button>
+                    <button class="king-btn" onclick="Core.initMatch('pvp', 0.1)">PvP Local</button>
                 </div>
             </div>
         </div>
 
-        <div id="screen-difficulty" class="screen hidden">
-            <div class="panel">
-                <h2 style="color: var(--primary); letter-spacing: 2px;">SELECT DIFFICULTY</h2>
-                <div class="menu-options">
-                    <button class="btn-king" onclick="App.Logic.initGame('bot', 0.06, 8)">Novice</button>
-                    <button class="btn-king" onclick="App.Logic.initGame('bot', 0.12, 11)">Veteran</button>
-                    <button class="btn-king" onclick="App.Logic.initGame('bot', 0.20, 14)">God Mode</button>
-                    <button class="btn-king" style="background:transparent; border:none; font-size:10px;" onclick="App.UI.show('screen-main')">Return</button>
+        <div id="screen-difficulty" class="overlay hidden">
+            <div class="king-panel">
+                <h2 style="color: var(--p1-neon)">SELECT LEVEL</h2>
+                <div class="btn-group">
+                    <button class="king-btn" onclick="Core.initMatch('bot', 0.07)">Student</button>
+                    <button class="king-btn" onclick="Core.initMatch('bot', 0.13)">Master</button>
+                    <button class="king-btn" onclick="Core.initMatch('bot', 0.23)">King Dev</button>
+                    <button class="king-btn" style="border:none; font-size:10px; opacity:0.4;" onclick="UI.show('screen-start')">Back</button>
                 </div>
             </div>
         </div>
 
-        <div id="screen-gameover" class="screen hidden">
-            <div class="panel">
-                <h2 id="winner-text" style="font-size: 3rem; margin:0;">MATCH ENDED</h2>
-                <p id="winner-desc" style="opacity:0.6; margin-bottom: 2rem;"></p>
-                <button class="btn-king" onclick="location.reload()">Back to Terminal</button>
+        <div id="screen-gameover" class="overlay hidden">
+            <div class="king-panel">
+                <h1 id="over-title">MATCH END</h1>
+                <p id="over-desc" style="margin: 20px 0; opacity: 0.6;"></p>
+                <button class="king-btn" onclick="location.reload()">Return to Menu</button>
             </div>
         </div>
 
@@ -266,320 +174,297 @@
 
     <script>
         /**
-         * King Dev Academy - Professional Game Architecture
-         * Namespace: App
+         * King Dev Academy - Anti-Broxa Engine
+         * Arquitetura de Estados e Performance Bruta
          */
-        const App = {
-            // Configurações Globais
-            Config: {
-                width: 1000,
-                height: 600,
-                paddleWidth: 15,
-                paddleHeight: 110,
-                ballSize: 9,
-                winScore: 7,
-                fps: 60
+
+        // 1. CONFIGURAÇÕES GLOBAIS
+        const CONFIG = {
+            width: 1000,
+            height: 600,
+            paddleW: 16,
+            paddleH: 110,
+            ballSize: 9,
+            winScore: 5,
+            initialSpeed: 9,
+            maxSpeed: 22
+        };
+
+        // 2. GERENCIADOR DE INTERFACE (UI)
+        const UI = {
+            screens: ['screen-start', 'screen-difficulty', 'screen-gameover'],
+            show(id) {
+                this.screens.forEach(s => {
+                    const el = document.getElementById(s);
+                    if(s === id) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                });
             },
-
-            // Gerenciador de Áudio Procedural
-            Audio: {
-                ctx: null,
-                init() {
-                    if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                },
-                play(freq, type = 'sine', duration = 0.1, vol = 0.1) {
-                    if(!this.ctx) return;
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + duration);
-                }
+            updateScore(s1, s2) {
+                document.getElementById('score-1').innerText = s1;
+                document.getElementById('score-2').innerText = s2;
             },
-
-            // Gerenciador de Interface
-            UI: {
-                screens: ['screen-main', 'screen-difficulty', 'screen-gameover'],
-                show(id) {
-                    this.screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-                    document.getElementById(id).classList.remove('hidden');
-                },
-                notify(msg, color = 'var(--success)') {
-                    const box = document.getElementById('notification-box');
-                    const toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.style.color = color;
-                    toast.innerText = msg;
-                    box.appendChild(toast);
-                    setTimeout(() => toast.remove(), 2000);
-                }
-            },
-
-            // Lógica do Jogo
-            Logic: {
-                canvas: null,
-                ctx: null,
-                active: false,
-                mode: 'bot',
-                iaLevel: 0.1,
-                ballSpeed: 8,
-                shake: 0,
-                scoreP1: 0,
-                scoreP2: 0,
-                keys: {},
-                particles: [],
-                trail: [],
-
-                init() {
-                    this.canvas = document.getElementById('main-arena');
-                    this.ctx = this.canvas.getContext('2d');
-                    this.bindEvents();
-                },
-
-                bindEvents() {
-                    window.addEventListener('keydown', e => this.keys[e.code] = true);
-                    window.addEventListener('keyup', e => this.keys[e.code] = false);
-                },
-
-                initGame(mode, difficulty = 0.1, speed = 8) {
-                    App.Audio.init(); // Ativa áudio no clique
-                    this.mode = mode;
-                    this.iaLevel = difficulty;
-                    this.ballSpeed = speed;
-                    this.scoreP1 = 0;
-                    this.scoreP2 = 0;
-                    
-                    App.UI.show('none');
-                    document.getElementById('game-hud').style.display = 'flex';
-                    this.canvas.style.display = 'block';
-                    
-                    this.active = true;
-                    this.resetBall();
-                    this.loop();
-                    App.UI.notify("SYSTEM ONLINE", "var(--primary)");
-                },
-
-                resetBall() {
-                    this.ball = {
-                        x: 500, y: 300,
-                        vX: (Math.random() > 0.5 ? 1 : -1) * this.ballSpeed,
-                        vY: (Math.random() - 0.5) * 12,
-                        speed: this.ballSpeed
-                    };
-                    this.trail = [];
-                    this.p1 = { y: 245 };
-                    this.p2 = { y: 245 };
-                },
-
-                createFaíscas(x, y, color) {
-                    for(let i=0; i<15; i++) {
-                        this.particles.push({
-                            x, y,
-                            vX: (Math.random() - 0.5) * 12,
-                            vY: (Math.random() - 0.5) * 12,
-                            alpha: 1,
-                            color: color
-                        });
-                    }
-                },
-
-                checkCollision(b, p, isLeft) {
-                    const px = isLeft ? 40 : 960 - App.Config.paddleWidth;
-                    if (b.x + App.Config.ballSize > px && b.x - App.Config.ballSize < px + App.Config.paddleWidth) {
-                        if (b.y > p.y && b.y < p.y + App.Config.paddleHeight) {
-                            // Cálculo de Ângulo Dinâmico
-                            let impact = (b.y - (p.y + App.Config.paddleHeight/2)) / (App.Config.paddleHeight/2);
-                            let angle = impact * (Math.PI/4);
-                            
-                            b.vX = (isLeft ? 1 : -1) * b.speed * Math.cos(angle);
-                            b.vY = b.speed * Math.sin(angle);
-                            b.speed += 0.4;
-                            this.shake = 8;
-                            this.createFaíscas(b.x, b.y, isLeft ? 'var(--primary)' : 'var(--secondary)');
-                            App.Audio.play(300 + (Math.random()*200), 'square', 0.08, 0.05);
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-
-                update() {
-                    if (!this.active) return;
-
-                    // Player 1 Movement
-                    if (this.keys['KeyW'] && this.p1.y > 5) this.p1.y -= 14;
-                    if (this.keys['KeyS'] && this.p1.y < 595 - App.Config.paddleHeight) this.p1.y += 14;
-
-                    // Player 2 / AI Movement
-                    if (this.mode === 'pvp') {
-                        if (this.keys['ArrowUp'] && this.p2.y > 5) this.p2.y -= 14;
-                        if (this.keys['ArrowDown'] && this.p2.y < 595 - App.Config.paddleHeight) this.p2.y += 14;
-                    } else {
-                        let center = this.p2.y + App.Config.paddleHeight/2;
-                        this.p2.y += (this.ball.y - center) * this.iaLevel * 9;
-                    }
-
-                    // Ball Physics
-                    this.ball.x += this.ball.vX;
-                    this.ball.y += this.ball.vY;
-
-                    // Wall Bounce
-                    if (this.ball.y < 15 || this.ball.y > 585) {
-                        this.ball.vY *= -1;
-                        this.shake = 4;
-                        App.Audio.play(150, 'triangle', 0.05);
-                    }
-
-                    // Paddle Collisions
-                    this.checkCollision(this.ball, this.p1, true);
-                    this.checkCollision(this.ball, this.p2, false);
-
-                    // Trail Logic
-                    this.trail.push({ x: this.ball.x, y: this.ball.y });
-                    if (this.trail.length > 20) this.trail.shift();
-
-                    // Scoring
-                    if (this.ball.x < 0) this.handleGoal(2);
-                    if (this.ball.x > App.Config.width) this.handleGoal(1);
-
-                    // Particle cleanup
-                    this.particles.forEach((p, i) => {
-                        p.x += p.vX; p.y += p.vY; p.alpha -= 0.03;
-                        if (p.alpha <= 0) this.particles.splice(i, 1);
-                    });
-
-                    // Decay Effects
-                    if (this.shake > 0) this.shake *= 0.9;
-                },
-
-                handleGoal(p) {
-                    if (p === 1) this.scoreP1++; else this.scoreP2++;
-                    
-                    this.shake = 25;
-                    App.Audio.play(80, 'sawtooth', 0.4, 0.2);
-                    
-                    document.getElementById('score-p1').innerText = this.scoreP1;
-                    document.getElementById('score-p2').innerText = this.scoreP2;
-
-                    // Anúncio visual
-                    const ann = document.getElementById('announcer');
-                    ann.innerText = "GOAL!";
-                    ann.style.color = p === 1 ? 'var(--primary)' : 'var(--secondary)';
-                    ann.style.opacity = 1;
-                    setTimeout(() => ann.style.opacity = 0, 1000);
-
-                    if (this.scoreP1 >= App.Config.winScore || this.scoreP2 >= App.Config.winScore) {
-                        this.endGame(p === 1 ? "PLAYER 1" : "PLAYER 2");
-                    } else {
-                        this.resetBall();
-                    }
-                },
-
-                endGame(winner) {
-                    this.active = false;
-                    setTimeout(() => {
-                        this.canvas.style.display = 'none';
-                        document.getElementById('game-hud').style.display = 'none';
-                        App.UI.show('screen-gameover');
-                        document.getElementById('winner-text').innerText = winner + " WINS";
-                        document.getElementById('winner-text').style.color = winner.includes('1') ? 'var(--primary)' : 'var(--secondary)';
-                        document.getElementById('winner-desc').innerText = `Tournament results stored in King Dev Academy database. Score: ${this.scoreP1} - ${this.scoreP2}`;
-                    }, 1500);
-                },
-
-                draw() {
-                    const ctx = this.ctx;
-                    ctx.save();
-                    
-                    // Screen Shake
-                    if (this.shake > 0.5) {
-                        ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-                    }
-
-                    // Background & Glow
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(0, 0, 1000, 600);
-
-                    // Campo: Borda e Rede
-                    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-                    ctx.lineWidth = 10;
-                    ctx.strokeRect(5, 5, 990, 590);
-
-                    ctx.setLineDash([15, 15]);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-                    ctx.beginPath(); ctx.moveTo(500, 10); ctx.lineTo(500, 590); ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    // Desenhar Trail (Rastro)
-                    this.trail.forEach((t, i) => {
-                        let size = (i / this.trail.length) * App.Config.ballSize;
-                        ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
-                        ctx.beginPath();
-                        ctx.arc(t.x, t.y, size, 0, Math.PI*2);
-                        ctx.fill();
-                    });
-
-                    // Paddles com Brilho Dinâmico
-                    this.drawPaddle(40, this.p1.y, 'var(--primary)');
-                    this.drawPaddle(960 - App.Config.paddleWidth, this.p2.y, 'var(--secondary)');
-
-                    // Ball
-                    ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
-                    ctx.fillStyle = '#fff';
-                    ctx.beginPath();
-                    ctx.arc(this.ball.x, this.ball.y, App.Config.ballSize, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-
-                    // Particles
-                    this.particles.forEach(p => {
-                        ctx.globalAlpha = p.alpha;
-                        ctx.fillStyle = p.color;
-                        ctx.fillRect(p.x, p.y, 4, 4);
-                    });
-                    ctx.globalAlpha = 1;
-
-                    ctx.restore();
-                },
-
-                drawPaddle(x, y, color) {
-                    const ctx = this.ctx;
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = color;
-                    ctx.fillStyle = color;
-                    
-                    // Desenho da Raquete arredondada
-                    const r = 5; // radius
-                    const w = App.Config.paddleWidth;
-                    const h = App.Config.paddleHeight;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x + r, y);
-                    ctx.arcTo(x + w, y, x + w, y + h, r);
-                    ctx.arcTo(x + w, y + h, x, y + h, r);
-                    ctx.arcTo(x, y + h, x, y, r);
-                    ctx.arcTo(x, y, x + w, y, r);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                },
-
-                loop() {
-                    if (!this.active) return;
-                    this.update();
-                    this.draw();
-                    requestAnimationFrame(() => this.loop());
-                }
+            announce(text, color) {
+                const el = document.getElementById('announcer');
+                el.innerText = text;
+                el.style.color = color;
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 1200);
             }
         };
 
-        // Auto-inicialização do Engine
-        window.onload = () => App.Logic.init();
+        // 3. MOTOR DE PARTÍCULAS (ParticleSystem)
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+            }
+            emit(x, y, color, count = 15) {
+                for(let i=0; i < count; i++) {
+                    this.particles.push({
+                        x, y,
+                        vx: (Math.random() - 0.5) * 12,
+                        vy: (Math.random() - 0.5) * 12,
+                        life: 1.0,
+                        color: color
+                    });
+                }
+            }
+            update() {
+                for(let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.life -= 0.025;
+                    if(p.life <= 0) this.particles.splice(i, 1);
+                }
+            }
+            draw(ctx) {
+                this.particles.forEach(p => {
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, 3, 3);
+                });
+                ctx.globalAlpha = 1.0;
+            }
+        }
 
+        // 4. MOTOR PRINCIPAL (Core)
+        const Core = {
+            canvas: null,
+            ctx: null,
+            active: false,
+            mode: 'bot',
+            iaLevel: 0.1,
+            shake: 0,
+            particles: new ParticleSystem(),
+            keys: {},
+            
+            p1: { y: 245, score: 0, color: '#00f2ff' },
+            p2: { y: 245, score: 0, color: '#ff007f' },
+            ball: { x: 500, y: 300, vx: 0, vy: 0, speed: 0 },
+            trail: [],
+
+            init() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.listen();
+                console.log("[KING ENGINE] Terminal Online.");
+            },
+
+            listen() {
+                window.addEventListener('keydown', e => this.keys[e.code] = true);
+                window.addEventListener('keyup', e => this.keys[e.code] = false);
+            },
+
+            initMatch(mode, ia) {
+                this.mode = mode;
+                this.iaLevel = ia;
+                this.p1.score = 0;
+                this.p2.score = 0;
+                UI.updateScore(0, 0);
+                
+                UI.show('none');
+                document.getElementById('king-hud').style.display = 'flex';
+                
+                this.active = true;
+                this.resetBall();
+                this.loop();
+            },
+
+            resetBall() {
+                this.ball.x = CONFIG.width / 2;
+                this.ball.y = CONFIG.height / 2;
+                this.ball.speed = CONFIG.initialSpeed;
+                const dir = Math.random() > 0.5 ? 1 : -1;
+                this.ball.vx = dir * this.ball.speed;
+                this.ball.vy = (Math.random() - 0.5) * 10;
+                this.trail = [];
+            },
+
+            update() {
+                if(!this.active) return;
+
+                // 1. Movimentação Player 1
+                if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 13;
+                if(this.keys['KeyS'] && this.p1.y < CONFIG.height - CONFIG.paddleH - 10) this.p1.y += 13;
+
+                // 2. Movimentação Player 2 (IA ou Humano)
+                if(this.mode === 'pvp') {
+                    if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 13;
+                    if(this.keys['ArrowDown'] && this.p2.y < CONFIG.height - CONFIG.paddleH - 10) this.p2.y += 13;
+                } else {
+                    let targetY = this.ball.y - (CONFIG.paddleH / 2);
+                    this.p2.y += (targetY - this.p2.y) * this.iaLevel * 10;
+                }
+
+                // 3. Física da Bola
+                this.ball.x += this.ball.vx;
+                this.ball.y += this.ball.vy;
+
+                // 4. Trail (Rastro)
+                this.trail.push({x: this.ball.x, y: this.ball.y});
+                if(this.trail.length > 15) this.trail.shift();
+
+                // 5. Colisão Paredes
+                if(this.ball.y < 15 || this.ball.y > CONFIG.height - 15) {
+                    this.ball.vy *= -1;
+                    this.shake = 5;
+                }
+
+                // 6. Colisão Raquetes (Pixel Perfect Logic)
+                let paddle = (this.ball.x < 500) ? this.p1 : this.p2;
+                let paddleX = (this.ball.x < 500) ? 40 : 960 - CONFIG.paddleW;
+
+                if(this.ball.x + CONFIG.ballSize > paddleX && 
+                   this.ball.x - CONFIG.ballSize < paddleX + CONFIG.paddleW &&
+                   this.ball.y > paddle.y && this.ball.y < paddle.y + CONFIG.paddleH) {
+                    
+                    // Inversão e ângulo baseado no ponto de impacto
+                    let impact = (this.ball.y - (paddle.y + CONFIG.paddleH/2)) / (CONFIG.paddleH/2);
+                    this.ball.vx *= -1;
+                    this.ball.vy = impact * 12;
+                    
+                    // Aceleração progressiva
+                    if(this.ball.speed < CONFIG.maxSpeed) this.ball.speed += 0.5;
+                    this.ball.vx = (this.ball.vx > 0 ? 1 : -1) * this.ball.speed;
+
+                    this.shake = 10;
+                    this.particles.emit(this.ball.x, this.ball.y, paddle.color);
+                }
+
+                // 7. Sistema de Gols
+                if(this.ball.x < 0) this.scoreGoal(2);
+                if(this.ball.x > CONFIG.width) this.scoreGoal(1);
+
+                // 8. Efeitos e Partículas
+                this.particles.update();
+                if(this.shake > 0) this.shake *= 0.85;
+            },
+
+            scoreGoal(p) {
+                if(p === 1) this.p1.score++; else this.p2.score++;
+                UI.updateScore(this.p1.score, this.p2.score);
+                
+                this.shake = 25;
+                this.active = false;
+                UI.announce("GOAL!", p === 1 ? this.p1.color : this.p2.color);
+
+                setTimeout(() => {
+                    if(this.p1.score >= CONFIG.winScore || this.p2.score >= CONFIG.winScore) {
+                        this.gameOver(p === 1 ? "KING CADET" : "SYSTEM CORE");
+                    } else {
+                        this.active = true;
+                        this.resetBall();
+                    }
+                }, 1500);
+            },
+
+            gameOver(winner) {
+                this.active = false;
+                UI.show('screen-gameover');
+                document.getElementById('over-title').innerText = winner + " WINS";
+                document.getElementById('over-desc').innerText = "The match data has been synced with the King Dev Academy database.";
+            },
+
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+
+                // Screen Shake Effect
+                if(this.shake > 0.5) {
+                    ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
+                }
+
+                // Clear & Background
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+                // Desenhar Arena (Bordas)
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(5, 5, 990, 590);
+
+                // Rede Central
+                ctx.setLineDash([15, 15]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.beginPath(); ctx.moveTo(500, 20); ctx.lineTo(500, 580); ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Desenhar Rastro (Motion Blur)
+                this.trail.forEach((t, i) => {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${i / 30})`;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, (i / 15) * CONFIG.ballSize, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Desenhar Raquetes (Glow Effect)
+                this.drawPaddle(40, this.p1.y, this.p1.color);
+                this.drawPaddle(960 - CONFIG.paddleW, this.p2.y, this.p2.color);
+
+                // Desenhar Bola
+                ctx.shadowBlur = 15; ctx.shadowColor = '#fff';
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.ball.x, this.ball.y, CONFIG.ballSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Desenhar Partículas
+                this.particles.draw(ctx);
+
+                ctx.restore();
+            },
+
+            drawPaddle(x, y, color) {
+                const ctx = this.ctx;
+                ctx.shadowBlur = 25; ctx.shadowColor = color;
+                ctx.fillStyle = color;
+                
+                // Rounded Paddle Design
+                const r = 6;
+                ctx.beginPath();
+                ctx.roundRect(x, y, CONFIG.paddleW, CONFIG.paddleH, r);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            },
+
+            loop() {
+                if(!this.active) return;
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        // Auto-Run
+        window.onload = () => Core.init();
+
+        /* KING DEV ACADEMY - NOTAS DE MANUTENÇÃO:
+           - O código usa requestAnimationFrame para sincronização com o monitor.
+           - Colisões usam vetores de impacto para evitar que a bola fique presa.
+           - O sistema de interface é desacoplado do motor de física.
+           - Adicionado suporte a arredondamento de raquetes (roundRect).
+        */
     </script>
 </body>
 </html>
