@@ -2,271 +2,228 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING OS | SINGULARITY v12</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=JetBrains+Mono:wght@300;700&display=swap" rel="stylesheet">
+    <title>KING ENGINE | BLACK EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root { --p1: #00f2ff; --p2: #ff007f; --bg: #000; --neon: #00ff41; }
-        * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
+        :root { --king: #00f2ff; --enemy: #ff007f; --bg: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
         
         body { 
-            background: #000; color: #fff; font-family: 'JetBrains Mono', monospace;
+            background: var(--bg); color: #fff; font-family: 'Inter', sans-serif;
             height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
-        #core-engine {
-            position: relative; width: 1250px; height: 750px;
-            background: #000; border: 1px solid #111;
-            box-shadow: 0 0 150px rgba(0, 242, 255, 0.03);
-        }
+        #game-container { position: relative; width: 1200px; height: 700px; background: #000; }
 
-        /* OVERLAYS */
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(40px); }
+        /* INTERFACE LIMPA E MODERNA */
+        #ui-layer {
+            position: absolute; inset: 0; pointer-events: none;
+            display: flex; justify-content: space-between; padding: 60px 100px; z-index: 10;
+        }
+        .score-card { text-align: center; }
+        .score-num { font-size: 10rem; font-weight: 900; line-height: 0.8; letter-spacing: -5px; }
+        .player-label { font-size: 12px; font-weight: 400; letter-spacing: 10px; color: #444; margin-top: 20px; text-transform: uppercase; }
+
+        /* MENU SEM DISTRAÇÕES */
+        .screen { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
         .hidden { display: none !important; }
 
-        /* BOOT ANIMATION */
-        #boot-loader { width: 400px; text-align: left; font-size: 12px; color: var(--p1); }
-        .progress-bar { width: 0%; height: 2px; background: var(--p1); box-shadow: 0 0 15px var(--p1); margin-top: 10px; transition: 0.5s; }
-
-        /* HUD - SUPREMACIA VISUAL */
-        #hud {
-            position: absolute; top: 0; width: 100%; display: none;
-            justify-content: space-between; padding: 50px 120px; z-index: 100;
+        .btn-main {
+            width: 350px; padding: 20px; margin: 10px; background: transparent; color: #fff;
+            border: 1px solid #222; font-size: 14px; font-weight: 900; letter-spacing: 4px;
+            cursor: pointer; transition: all 0.2s ease;
         }
-        .score-wrap { text-align: center; perspective: 1000px; }
-        .score-val { 
-            font-family: 'Syncopate'; font-size: 9rem; line-height: 0.7; 
-            background: linear-gradient(to bottom, #fff, #333);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
-        }
-        .tag { font-size: 10px; letter-spacing: 10px; color: #444; margin-top: 20px; font-weight: 700; }
+        .btn-main:hover { background: #fff; color: #000; border-color: #fff; transform: translateY(-2px); }
 
-        /* BUTTONS */
-        .king-btn {
-            width: 420px; padding: 25px; margin: 15px; background: transparent; color: #fff;
-            border: 1px solid #222; font-family: 'Syncopate'; font-size: 12px; letter-spacing: 8px;
-            cursor: pointer; position: relative; overflow: hidden; transition: 0.3s;
-        }
-        .king-btn:hover { background: #fff; color: #000; box-shadow: 0 0 80px var(--p1); transform: translateY(-5px); }
-
-        canvas { display: block; filter: contrast(1.2) saturate(1.3); }
-        
-        #pao-fx { 
+        #pao-banner {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Syncopate'; font-size: 8rem; opacity: 0; z-index: 3000;
-            pointer-events: none; text-shadow: 0 0 50px var(--p1);
+            font-size: 8rem; font-weight: 900; opacity: 0; z-index: 200; pointer-events: none;
         }
 
-        /* CURSOR CROSSHAIR */
-        .ch { position: fixed; background: rgba(0, 242, 255, 0.15); pointer-events: none; z-index: 5000; }
-        #ch-v { width: 1px; height: 100vh; }
-        #ch-h { height: 1px; width: 100vw; }
+        canvas { display: block; }
+        #cursor { position: fixed; width: 20px; height: 20px; border: 1px solid #fff; border-radius: 50%; pointer-events: none; z-index: 1000; mix-blend-mode: difference; }
     </style>
 </head>
 <body>
 
-<div id="ch-v" class="ch"></div>
-<div id="ch-h" class="ch"></div>
+<div id="cursor"></div>
 
-<div id="core-engine">
-    <div id="scr-boot" class="overlay">
-        <div id="boot-loader">
-            <div id="boot-text">> INICIALIZANDO PROTOCOLO SINGULARITY...</div>
-            <div class="progress-bar" id="p-bar"></div>
-            <div style="margin-top: 20px; color: #333; font-size: 9px;">DEVELOPED BY KING DEV ACADEMY © 2026</div>
+<div id="game-container">
+    <div id="screen-start" class="screen">
+        <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 40px; letter-spacing: -2px;">KING ENGINE</h1>
+        <button class="btn-main" onclick="Core.start('ia')">VS MACHINE</button>
+        <button class="btn-main" onclick="Core.start('pvp')" style="color: var(--enemy); border-color: #111;">VS PLAYER</button>
+    </div>
+
+    <div id="ui-layer">
+        <div class="score-card" style="color: var(--king)">
+            <div id="s1" class="score-num">0</div>
+            <div class="player-label">KING</div>
+        </div>
+        <div class="score-card" style="color: var(--enemy)">
+            <div id="s2" class="score-num">0</div>
+            <div id="label-p2" class="player-label">CPU</div>
         </div>
     </div>
 
-    <div id="scr-menu" class="overlay hidden">
-        <div style="margin-bottom: 50px; text-align: center;">
-            <h1 style="font-family: 'Syncopate'; font-size: 3.5rem; letter-spacing: -5px;">KING<span style="color: var(--p2)">_CORE</span></h1>
-            <p style="color: var(--p1); font-size: 10px; letter-spacing: 15px;">SUPREMACY EDITION</p>
-        </div>
-        <button class="king-btn" onclick="Engine.init('ia')">A.I. DOMINATION</button>
-        <button class="king-btn" onclick="Engine.init('pvp')" style="border-color: var(--p2)">LOCAL_DUEL_v2</button>
-    </div>
-
-    <div id="hud">
-        <div class="score-wrap" style="color: var(--p1)"><div id="s1" class="score-val">0</div><div class="tag">KING_OPERATOR</div></div>
-        <div class="score-wrap" style="color: var(--p2)"><div id="s2" class="score-val">0</div><div id="tag-p2" class="tag">NEURAL_BOT</div></div>
-    </div>
-
-    <div id="pao-fx">PÃO 👍</div>
-    <canvas id="canvas" width="1250" height="750"></canvas>
+    <div id="pao-banner">PÃO 👍</div>
+    <canvas id="canvas" width="1200" height="700"></canvas>
 </div>
 
 <script>
-/**
- * KING ENGINE v12 - SINGULARITY
- * O Código que salva impérios.
- */
+const Core = {
+    running: false, mode: 'ia',
+    canvas: null, ctx: null,
+    ball: { x: 600, y: 350, vx: 0, vy: 0, r: 10, trail: [] },
+    p1: { y: 300, h: 120, w: 12, s: 0 },
+    p2: { y: 300, h: 120, w: 12, s: 0, ease: 0.15 },
+    keys: {}, particles: [], shake: 0,
 
-const Engine = {
-    active: false, mode: 'ia',
-    cvs: null, ctx: null,
-    ball: { x: 625, y: 375, vx: 0, vy: 0, trail: [] },
-    p1: { y: 320, s: 0 }, p2: { y: 320, s: 0, err: 0 },
-    keys: {}, fx: [], shake: 0, combo: 0,
-
-    bootSequence() {
-        const bar = document.getElementById('p-bar');
-        const txt = document.getElementById('boot-text');
-        let p = 0;
-        const itv = setInterval(() => {
-            p += Math.random() * 15;
-            if(p >= 100) {
-                p = 100; clearInterval(itv);
-                setTimeout(() => {
-                    document.getElementById('scr-boot').classList.add('hidden');
-                    document.getElementById('scr-menu').classList.remove('hidden');
-                }, 800);
-            }
-            bar.style.width = p + '%';
-            if(p > 30) txt.innerText = "> CARREGANDO MÓDULOS NEURAIS...";
-            if(p > 70) txt.innerText = "> ESTABELECENDO SOBERANIA...";
-        }, 150);
-    },
-
-    init(m) {
+    start(m) {
         this.mode = m;
-        this.cvs = document.getElementById('canvas');
-        this.ctx = this.cvs.getContext('2d');
-        document.getElementById('scr-menu').classList.add('hidden');
-        document.getElementById('hud').style.display = 'flex';
-        if(m === 'pvp') document.getElementById('tag-p2').innerText = "OPERATOR_02";
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        document.getElementById('screen-start').classList.add('hidden');
+        if(m === 'pvp') document.getElementById('label-p2').innerText = "PLAYER 2";
 
         window.addEventListener('keydown', e => this.keys[e.code] = true);
         window.addEventListener('keyup', e => this.keys[e.code] = false);
         document.addEventListener('mousemove', e => {
-            document.getElementById('ch-v').style.left = e.clientX + 'px';
-            document.getElementById('ch-h').style.top = e.clientY + 'px';
+            const c = document.getElementById('cursor');
+            c.style.left = e.clientX - 10 + 'px'; c.style.top = e.clientY - 10 + 'px';
         });
 
-        this.active = true; this.resetBall(); this.loop();
+        this.running = true; this.resetBall(); this.loop();
     },
 
     resetBall() {
-        this.ball.x = 625; this.ball.y = 375;
-        this.ball.vx = (Math.random() > 0.5 ? 14 : -14);
-        this.ball.vy = (Math.random() - 0.5) * 20;
-        this.ball.trail = []; this.combo = 0;
+        this.ball.x = 600; this.ball.y = 350;
+        const angle = (Math.random() * Math.PI / 4) - Math.PI / 8;
+        const dir = Math.random() > 0.5 ? 1 : -dir;
+        this.ball.vx = Math.cos(angle) * 14 * (Math.random() > 0.5 ? 1 : -1);
+        this.ball.vy = Math.sin(angle) * 14;
+        this.ball.trail = [];
     },
 
-    createFX(x, y, color) {
-        for(let i=0; i<30; i++) {
-            this.fx.push({
+    spawnImpact(x, y, color) {
+        for(let i=0; i<20; i++) {
+            this.particles.push({
                 x, y, 
-                vx: (Math.random()-0.5) * 25, 
-                vy: (Math.random()-0.5) * 25, 
-                l: 1.0, c: color, r: Math.random()*5
+                vx: (Math.random() - 0.5) * 15, 
+                vy: (Math.random() - 0.5) * 15, 
+                life: 1, color
             });
         }
     },
 
     update() {
-        if(!this.active) return;
+        if(!this.running) return;
 
-        // Movimento (Física de alta precisão)
-        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 22;
-        if(this.keys['KeyS'] && this.p1.y < 610) this.p1.y += 22;
+        // Movimentação P1
+        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 18;
+        if(this.keys['KeyS'] && this.p1.y < 570) this.p1.y += 18;
 
+        // Movimentação P2 (IA ou Player)
         if(this.mode === 'pvp') {
-            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 22;
-            if(this.keys['ArrowDown'] && this.p2.y < 610) this.p2.y += 22;
+            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 18;
+            if(this.keys['ArrowDown'] && this.p2.y < 570) this.p2.y += 18;
         } else {
-            let target = this.ball.y - 65 + this.p2.err;
-            this.p2.y += (target - this.p2.y) * 0.16;
+            let target = this.ball.y - this.p2.h / 2;
+            this.p2.y += (target - this.p2.y) * this.p2.ease;
         }
 
-        this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
+        // Física da Bola
+        this.ball.x += this.ball.vx;
+        this.ball.y += this.ball.vy;
+        
         this.ball.trail.push({x: this.ball.x, y: this.ball.y});
-        if(this.ball.trail.length > 30) this.ball.trail.shift();
+        if(this.ball.trail.length > 15) this.ball.trail.shift();
 
         // Colisão Paredes
-        if(this.ball.y < 15 || this.ball.y > 735) { this.ball.vy *= -1; this.shake = 12; }
-
-        // Colisão Raquetes
-        let isP1 = this.ball.x < 625;
-        let pad = isP1 ? this.p1 : this.p2;
-        let px = isP1 ? 60 : 1175;
-
-        if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > pad.y && this.ball.y < pad.y+130) {
-            this.ball.vx *= -1.07;
-            this.ball.vy = (this.ball.y - (pad.y+65)) * 0.5;
-            this.combo++;
-            this.shake = 15 + (this.combo * 2);
-            this.createFX(this.ball.x, this.ball.y, isP1 ? '#00f2ff' : '#ff007f');
-            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*120;
+        if(this.ball.y < 10 || this.ball.y > 690) {
+            this.ball.vy *= -1;
+            this.shake = 5;
         }
 
-        if(this.ball.x < 0) this.score(2);
-        if(this.ball.x > 1250) this.score(1);
+        // Colisão Raquetes (Bounding Box Precisa)
+        if(this.ball.vx < 0) { // Lado King
+            if(this.ball.x <= 72 && this.ball.x >= 60 && this.ball.y >= this.p1.y && this.ball.y <= this.p1.y + this.p1.h) {
+                this.ball.vx = Math.abs(this.ball.vx) * 1.05;
+                this.ball.vy = (this.ball.y - (this.p1.y + this.p1.h/2)) * 0.35;
+                this.spawnImpact(this.ball.x, this.ball.y, '#fff');
+                this.shake = 10;
+            }
+        } else { // Lado Inimigo
+            if(this.ball.x >= 1128 && this.ball.x <= 1140 && this.ball.y >= this.p2.y && this.ball.y <= this.p2.y + this.p2.h) {
+                this.ball.vx = -Math.abs(this.ball.vx) * 1.05;
+                this.ball.vy = (this.ball.y - (this.p2.y + this.p2.h/2)) * 0.35;
+                this.spawnImpact(this.ball.x, this.ball.y, '#fff');
+                this.shake = 10;
+            }
+        }
 
-        this.fx.forEach((f, i) => { f.x += f.vx; f.y += f.vy; f.l -= 0.025; if(f.l <= 0) this.fx.splice(i, 1); });
-        if(this.shake > 0) this.shake *= 0.85;
+        // Pontuação
+        if(this.ball.x < 0) this.score(2);
+        if(this.ball.x > 1200) this.score(1);
+
+        // Partículas e Shake
+        this.particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+            if(p.life <= 0) this.particles.splice(i, 1);
+        });
+        this.shake *= 0.9;
     },
 
     score(p) {
         p === 1 ? this.p1.s++ : this.p2.s++;
         document.getElementById('s1').innerText = this.p1.s;
         document.getElementById('s2').innerText = this.p2.s;
-        this.active = false; this.shake = 60;
+        this.running = false;
         
-        const pao = document.getElementById('pao-fx');
-        if(this.p1.s >= 10) { pao.style.opacity = 1; pao.style.transform = "translate(-50%, -50%) scale(1.5)"; }
-        
-        setTimeout(() => {
-            pao.style.opacity = 0;
-            if(this.p1.s >= 10 || this.p2.s >= 10) location.reload();
-            else { this.active = true; this.resetBall(); this.loop(); }
-        }, 1500);
+        if(this.p1.s >= 10) {
+            const banner = document.getElementById('pao-banner');
+            banner.style.opacity = 1;
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            setTimeout(() => { this.resetBall(); this.running = true; this.loop(); }, 1000);
+        }
     },
 
     draw() {
-        const ctx = this.ctx; ctx.save();
-        if(this.shake > 0.5) {
-            ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-            // Efeito de Aberração Cromática Simulado
-            ctx.globalAlpha = 0.5; ctx.fillStyle = '#f00'; ctx.fillRect(2,2,1250,750); ctx.globalAlpha = 1;
-        }
+        const ctx = this.ctx;
+        ctx.save();
+        if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
+        
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 1200, 700);
 
-        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1250,750);
+        // Raquetes
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(60, this.p1.y, this.p1.w, this.p1.h);
+        ctx.fillRect(1128, this.p2.y, this.p2.w, this.p2.h);
 
-        // Grid Profundo
-        ctx.strokeStyle = '#080808'; ctx.lineWidth = 1;
-        for(let i=0; i<1250; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,750); ctx.stroke(); }
-
-        // Trail Luminoso
+        // Bola e Rastro
         this.ball.trail.forEach((t, i) => {
-            ctx.fillStyle = `rgba(0, 242, 255, ${i/80})`;
-            ctx.beginPath(); ctx.arc(t.x, t.y, (i/30)*20, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*8, 0, Math.PI*2); ctx.fill();
         });
+        ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, this.ball.r, 0, Math.PI*2); ctx.fill();
 
-        // Raquetes com Glow
-        ctx.shadowBlur = 30 + (this.combo * 5);
-        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(60, this.p1.y, 15, 130);
-        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1175, this.p2.y, 15, 130);
-
-        // Ball Core
-        ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
-        ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 12, 0, Math.PI*2); ctx.fill();
-
-        // FX Particles
-        ctx.shadowBlur = 0;
-        this.fx.forEach(f => {
-            ctx.globalAlpha = f.l; ctx.fillStyle = f.c;
-            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.fill();
+        // Partículas
+        this.particles.forEach(p => {
+            ctx.globalAlpha = p.life; ctx.fillStyle = '#fff';
+            ctx.fillRect(p.x, p.y, 3, 3);
         });
 
         ctx.restore();
     },
 
     loop() {
-        if(this.active) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); }
+        if(this.running) {
+            this.update(); this.draw();
+            requestAnimationFrame(() => this.loop());
+        }
     }
 };
-
-window.onload = () => Engine.bootSequence();
 </script>
 </body>
 </html>
