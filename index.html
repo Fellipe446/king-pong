@@ -3,217 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KING PONG | IMMORTAL EDITION</title>
+    <title>KING PONG | ANTI-BROXA EDITION</title>
     <style>
-        /* KING DEV ACADEMY - DESIGN SYSTEM 
-           Foco em contraste alto e baixa latência.
-        */
         :root {
-            --p1-color: #00f2ff;
-            --p2-color: #ff007f;
-            --bg-dark: #050505;
-            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --p1-neon: #00f2ff;
+            --p2-neon: #ff007f;
+            --bg: #020202;
+            --font: 'Segoe UI', Arial, sans-serif;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; }
 
         body {
-            background: var(--bg-dark);
+            background: var(--bg);
             color: #fff;
             font-family: var(--font);
-            margin: 0;
-            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            height: 100vh;
             user-select: none;
         }
 
-        /* Efeito de scanline via CSS para economizar processamento do Canvas */
-        .overlay-vfx {
-            position: fixed; inset: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
-            z-index: 1000;
-            pointer-events: none;
+        /* EFEITO DE SCANLINE PROFISSIONAL */
+        body::after {
+            content: ""; position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 3px; z-index: 1000; pointer-events: none;
         }
 
-        #game-wrapper {
+        #container {
             position: relative;
             width: 1000px;
             height: 600px;
             border: 2px solid #111;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: #000;
         }
 
-        /* HUD DINÂMICO */
+        /* HUD - PLACAR */
         #hud {
-            position: absolute;
-            top: 0; width: 100%;
-            display: none;
-            justify-content: space-between;
-            padding: 20px 80px;
-            z-index: 10;
-            pointer-events: none;
+            position: absolute; top: 20px; width: 100%;
+            display: none; justify-content: space-between;
+            padding: 0 100px; z-index: 10; pointer-events: none;
         }
+        .score { font-size: 7rem; font-weight: 900; filter: drop-shadow(0 0 20px rgba(255,255,255,0.1)); }
 
-        .score-display {
-            font-size: 6rem;
-            font-weight: 900;
-            text-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        /* MENUS */
+        /* OVERLAYS */
         .screen {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             z-index: 100;
         }
+        .screen.hidden { display: none !important; }
 
-        .screen.hidden { display: none; }
-
-        .king-card {
-            background: #0a0a0a;
-            padding: 50px;
-            border-radius: 20px;
-            border: 1px solid #222;
-            text-align: center;
-            min-width: 400px;
+        .card {
+            background: #080808; padding: 60px;
+            border-radius: 30px; border: 1px solid #222;
+            text-align: center; box-shadow: 0 0 50px #000;
         }
 
         h1 {
-            font-size: 4rem;
-            margin: 0;
-            background: linear-gradient(90deg, var(--p1-color), var(--p2-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -2px;
+            font-size: 5rem; margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--p1-neon), var(--p2-neon));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .btn-king {
-            width: 100%;
-            padding: 20px;
-            margin-top: 15px;
-            background: #111;
-            color: #fff;
-            border: 1px solid #333;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.2s;
+        .btn {
+            width: 300px; padding: 20px; margin-top: 15px;
+            background: #111; color: #fff; border: 1px solid #333;
+            border-radius: 12px; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; transition: 0.3s;
         }
+        .btn:hover { background: #fff; color: #000; transform: scale(1.05); }
 
-        .btn-king:hover {
-            background: #fff;
-            color: #000;
-            transform: translateY(-3px);
+        canvas { display: none; }
+        
+        #announcer {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 10rem; font-weight: 900; opacity: 0; z-index: 50; pointer-events: none;
         }
-
-        canvas { background: #000; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="overlay-vfx"></div>
-
-    <div id="game-wrapper">
-        
+    <div id="container">
         <div id="hud">
-            <div id="p1-score" class="score-display" style="color: var(--p1-color)">0</div>
-            <div id="p2-score" class="score-display" style="color: var(--p2-color)">0</div>
+            <div id="s1" class="score" style="color: var(--p1-neon)">0</div>
+            <div id="s2" class="score" style="color: var(--p2-neon)">0</div>
         </div>
 
-        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+        <div id="announcer">GOAL!</div>
 
-        <div id="menu-main" class="screen">
-            <div class="king-card">
+        <canvas id="stage" width="1000" height="600"></canvas>
+
+        <div id="m-start" class="screen">
+            <div class="card">
                 <h1>KING PONG</h1>
-                <p style="opacity: 0.5; letter-spacing: 5px; font-size: 12px;">KING DEV ACADEMY PRO</p>
-                <button class="btn-king" onclick="Engine.init('bot', 0.1)">INICIAR ACADEMY IA</button>
-                <button class="btn-king" onclick="Engine.init('bot', 0.22)" style="color: var(--p2-color)">DESAFIO KING</button>
+                <p style="letter-spacing: 8px; opacity: 0.4; font-size: 11px;">KING DEV ACADEMY - SUPREME</p>
+                <button class="btn" onclick="Engine.boot(0.08)">MODO ACADEMIA</button>
+                <button class="btn" onclick="Engine.boot(0.25)" style="color: var(--p2-neon)">MODO KING (HARD)</button>
             </div>
         </div>
 
-        <div id="menu-over" class="screen hidden">
-            <div class="king-card">
-                <h2 id="winner-label" style="font-size: 3rem;">VITÓRIA</h2>
-                <button class="btn-king" onclick="location.reload()">REINICIAR TERMINAL</button>
+        <div id="m-over" class="screen hidden">
+            <div class="card">
+                <h2 id="win-msg" style="font-size: 3rem;">-</h2>
+                <button class="btn" onclick="location.reload()">REINICIAR TERMINAL</button>
             </div>
         </div>
-
     </div>
 
     <script>
         /**
-         * KING ENGINE v3.0 - ANTI-BROXAMENTO E PERFORMANCE
-         * Desenvolvido para aguentar carga pesada de processamento.
+         * KING ENGINE v4.0 - ANTI-FUGA DE ADVERSÁRIO
+         * Otimizado para não broxar e manter o bot em campo.
          */
 
         const Engine = {
-            // 1. PROPRIEDADES DO SISTEMA
-            ctx: null,
-            canvas: null,
             active: false,
-            mode: 'bot',
-            iaLevel: 0.1,
+            canvas: null,
+            ctx: null,
+            iaLvl: 0.1,
             shake: 0,
             
-            // Entidades
-            ball: { x: 500, y: 300, r: 10, vx: 0, vy: 0, speed: 10 },
-            p1: { y: 250, w: 15, h: 110, score: 0 },
-            p2: { y: 250, w: 15, h: 110, score: 0 },
+            // Entidades (Puras, sem objetos complexos para não bugar)
+            p1Y: 250,
+            p2Y: 250,
+            p1Score: 0,
+            p2Score: 0,
             
-            // Sistemas Visuais
-            particles: [],
+            ballX: 500,
+            ballY: 300,
+            ballVX: 0,
+            ballVY: 0,
+            ballSpeed: 10,
+            
             trail: [],
+            particles: [],
             keys: {},
 
-            // 2. INICIALIZAÇÃO (BOOT)
-            init(mode, difficulty) {
-                this.canvas = document.getElementById('gameCanvas');
+            boot(lvl) {
+                this.iaLvl = lvl;
+                this.canvas = document.getElementById('stage');
                 this.ctx = this.canvas.getContext('2d');
-                this.mode = mode;
-                this.iaLevel = difficulty;
-
-                // Esconder menus
-                document.getElementById('menu-main').classList.add('hidden');
+                
+                document.getElementById('m-start').classList.add('hidden');
                 document.getElementById('hud').style.display = 'flex';
+                this.canvas.style.display = 'block';
 
-                // Listeners de teclado
                 window.addEventListener('keydown', e => this.keys[e.code] = true);
                 window.addEventListener('keyup', e => this.keys[e.code] = false);
 
                 this.active = true;
                 this.resetBall();
-                this.run();
+                this.loop();
             },
 
-            // 3. LÓGICA DE FÍSICA (CORE)
             resetBall() {
-                this.ball.x = 500;
-                this.ball.y = 300;
-                this.ball.speed = 10;
-                const side = Math.random() > 0.5 ? 1 : -1;
-                this.ball.vx = side * this.ball.speed;
-                this.ball.vy = (Math.random() - 0.5) * 10;
+                this.ballX = 500;
+                this.ballY = 300;
+                this.ballSpeed = 10;
+                let dir = Math.random() > 0.5 ? 1 : -1;
+                this.ballVX = dir * this.ballSpeed;
+                this.ballVY = (Math.random() - 0.5) * 12;
                 this.trail = [];
             },
 
-            createParticles(x, y, color) {
+            spawnFX(x, y, color) {
                 for(let i=0; i<15; i++) {
                     this.particles.push({
-                        x, y,
-                        vx: (Math.random() - 0.5) * 12,
-                        vy: (Math.random() - 0.5) * 12,
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
                         life: 1.0,
-                        color
+                        color: color
                     });
                 }
             },
@@ -221,47 +186,54 @@
             update() {
                 if(!this.active) return;
 
-                // Movimento P1 (W/S)
-                if(this.keys['KeyW'] && this.p1.y > 5) this.p1.y -= 14;
-                if(this.keys['KeyS'] && this.p1.y < 485) this.p1.y += 14;
+                // 1. Movimento P1 (W/S)
+                if(this.keys['KeyW'] && this.p1Y > 10) this.p1Y -= 12;
+                if(this.keys['KeyS'] && this.p1Y < 490) this.p1Y += 12;
 
-                // Movimento P2 (IA)
-                let target = this.ball.y - 55;
-                this.p2.y += (target - this.p2.y) * this.iaLevel * 10;
+                // 2. IA ANTI-BROXA (O adversário não vai mais pro cigarro)
+                let p2Center = this.p2Y + 55;
+                let diff = this.ballY - p2Center;
+                
+                // Movimento suave mas persistente
+                this.p2Y += diff * this.iaLvl * 10;
 
-                // Movimento Bola
-                this.ball.x += this.ball.vx;
-                this.ball.y += this.ball.vy;
+                // Trava de segurança para não sumir da tela
+                if(this.p2Y < 10) this.p2Y = 10;
+                if(this.p2Y > 490) this.p2Y = 490;
 
-                // Trail
-                this.trail.push({x: this.ball.x, y: this.ball.y});
-                if(this.trail.length > 12) this.trail.shift();
+                // 3. Bola
+                this.ballX += this.ballVX;
+                this.ballY += this.ballVY;
 
-                // Colisão Teto/Chão
-                if(this.ball.y < 10 || this.ball.y > 590) {
-                    this.ball.vy *= -1;
-                    this.shake = 5;
+                // Trail (Efeito Rastro)
+                this.trail.push({x: this.ballX, y: this.ballY});
+                if(this.trail.length > 15) this.trail.shift();
+
+                // 4. Colisões de Parede
+                if(this.ballY < 10 || this.ballY > 590) {
+                    this.ballVY *= -1;
+                    this.shake = 6;
                 }
 
-                // Colisão Raquetes
-                // Player 1
-                if(this.ball.x < 55 && this.ball.x > 30) {
-                    if(this.ball.y > this.p1.y && this.ball.y < this.p1.y + 110) {
-                        this.hitPaddle(this.p1, 1);
+                // 5. Colisões de Raquete (Sistema Robusto)
+                // Colisão P1
+                if(this.ballX < 55 && this.ballX > 30) {
+                    if(this.ballY > this.p1Y && this.ballY < this.p1Y + 110) {
+                        this.hit(1);
                     }
                 }
-                // Player 2
-                if(this.ball.x > 945 && this.ball.x < 970) {
-                    if(this.ball.y > this.p2.y && this.ball.y < this.p2.y + 110) {
-                        this.hitPaddle(this.p2, -1);
+                // Colisão P2
+                if(this.ballX > 945 && this.ballX < 970) {
+                    if(this.ballY > this.p2Y && this.ballY < this.p2Y + 110) {
+                        this.hit(-1);
                     }
                 }
 
-                // Gols
-                if(this.ball.x < 0) this.goal(2);
-                if(this.ball.x > 1000) this.goal(1);
+                // 6. Gols
+                if(this.ballX < 0) this.goal(2);
+                if(this.ballX > 1000) this.goal(1);
 
-                // Update Partículas
+                // 7. Partículas
                 this.particles.forEach((p, i) => {
                     p.x += p.vx; p.y += p.vy; p.life -= 0.03;
                     if(p.life <= 0) this.particles.splice(i, 1);
@@ -270,70 +242,78 @@
                 if(this.shake > 0) this.shake *= 0.9;
             },
 
-            hitPaddle(paddle, dir) {
-                this.ball.vx = Math.abs(this.ball.vx) * dir * 1.05;
-                let impact = (this.ball.y - (paddle.y + 55)) * 0.25;
-                this.ball.vy = impact;
-                this.ball.speed += 0.5;
-                this.shake = 10;
-                this.createParticles(this.ball.x, this.ball.y, dir > 0 ? '#00f2ff' : '#ff007f');
+            hit(dir) {
+                this.ballVX = Math.abs(this.ballVX) * dir * 1.05;
+                // Ângulo baseado na posição do impacto
+                let impact = (this.ballY - ( (dir > 0 ? this.p1Y : this.p2Y) + 55 )) * 0.2;
+                this.ballVY = impact;
+                this.ballSpeed += 0.4;
+                this.shake = 12;
+                this.spawnFX(this.ballX, this.ballY, dir > 0 ? '#00f2ff' : '#ff007f');
             },
 
-            goal(player) {
-                if(player === 1) this.p1.score++; else this.p2.score++;
-                document.getElementById('p1-score').innerText = this.p1.score;
-                document.getElementById('p2-score').innerText = this.p2.score;
+            goal(p) {
+                if(p === 1) this.p1Score++; else this.p2Score++;
+                document.getElementById('s1').innerText = this.p1Score;
+                document.getElementById('s2').innerText = this.p2Score;
                 
-                this.shake = 25;
-                if(this.p1.score >= 10 || this.p2.score >= 10) {
-                    this.active = false;
-                    document.getElementById('menu-over').classList.remove('hidden');
-                    document.getElementById('winner-label').innerText = player === 1 ? "KING VENCEU" : "SISTEMA VENCEU";
-                } else {
-                    this.resetBall();
-                }
+                this.shake = 30;
+                this.active = false;
+                
+                const ann = document.getElementById('announcer');
+                ann.style.opacity = 1;
+                ann.style.color = p === 1 ? '#00f2ff' : '#ff007f';
+
+                setTimeout(() => {
+                    ann.style.opacity = 0;
+                    if(this.p1Score >= 10 || this.p2Score >= 10) {
+                        this.end(p === 1 ? "KING DEV" : "SYSTEM CORE");
+                    } else {
+                        this.active = true;
+                        this.resetBall();
+                        this.loop();
+                    }
+                }, 1000);
             },
 
-            // 4. RENDERIZAÇÃO (DRAW)
+            end(winner) {
+                document.getElementById('m-over').classList.remove('hidden');
+                document.getElementById('win-msg').innerText = winner + " VENCEU";
+                document.getElementById('win-msg').style.color = winner.includes("KING") ? '#00f2ff' : '#ff007f';
+                this.canvas.style.display = 'none';
+            },
+
             draw() {
                 const ctx = this.ctx;
                 ctx.save();
 
-                // Screen Shake
                 if(this.shake > 0.5) {
                     ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
                 }
 
-                // Limpar Fundo
+                // Fundo e Brilho
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, 1000, 600);
 
                 // Desenhar Rastro
                 this.trail.forEach((t, i) => {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${i/20})`;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
                     ctx.beginPath();
-                    ctx.arc(t.x, t.y, (i/12) * 10, 0, Math.PI*2);
+                    ctx.arc(t.x, t.y, (i/15)*10, 0, Math.PI*2);
                     ctx.fill();
                 });
 
-                // Arena
-                ctx.strokeStyle = '#111';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(10, 10, 980, 580);
-
-                // Raquetes
-                ctx.shadowBlur = 15;
+                // Raquetes Neon
+                ctx.shadowBlur = 20;
                 ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff';
-                ctx.fillRect(35, this.p1.y, 15, 110);
+                ctx.fillRect(35, this.p1Y, 15, 110);
                 
                 ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f';
-                ctx.fillRect(950, this.p2.y, 15, 110);
+                ctx.fillRect(950, this.p2Y, 15, 110);
 
                 // Bola
                 ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
-                ctx.beginPath();
-                ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(this.ballX, this.ballY, 10, 0, Math.PI*2); ctx.fill();
 
                 // Partículas
                 ctx.shadowBlur = 0;
@@ -347,17 +327,16 @@
                 ctx.restore();
             },
 
-            run() {
+            loop() {
                 if(!this.active) return;
                 this.update();
                 this.draw();
-                requestAnimationFrame(() => this.run());
+                requestAnimationFrame(() => this.loop());
             }
         };
 
-        // NOTA: O código foi estruturado em um único objeto Engine para evitar 
-        // vazamento de memória e garantir que o Garbage Collector limpe o que não usa.
-        // King Dev Academy: Estabilidade em primeiro lugar.
+        // AUTO-INICIALIZAÇÃO DO TERMINAL
+        window.onload = () => Engine.active = false;
     </script>
 </body>
 </html>
