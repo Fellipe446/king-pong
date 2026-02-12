@@ -2,132 +2,91 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING PONG | TECH SUPREMACY</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <title>KING CORE | NEURAL PONG v9.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root { --p1: #00f2ff; --p2: #ff007f; --accent: #00ff41; --bg: #000; }
+        :root { --main: #00f2ff; --alt: #ff007f; --bg: #030303; }
         * { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
+        body { 
+            background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace;
+            height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        #stage { position: relative; width: 1150px; height: 650px; background: #000; border: 1px solid #1a1a1a; }
         
-        body {
-            background-color: var(--bg); color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            height: 100vh; display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-        }
-
-        #wrapper {
-            position: relative; width: 1100px; height: 650px;
-            border: 1px solid #222; background: #000;
-            box-shadow: 0 0 100px rgba(0, 242, 255, 0.1);
-        }
-
-        /* LOG DE TERMINAL (O QUE VAI IMPRESSIONAR A PROFESSORA) */
-        #console-log {
-            position: absolute; bottom: 10px; left: 10px;
-            width: 250px; height: 120px; background: rgba(0,0,0,0.7);
-            border: 1px solid #111; font-family: 'Fira Code', monospace;
-            font-size: 9px; color: var(--accent); padding: 10px;
-            overflow: hidden; pointer-events: none; z-index: 100;
-        }
-
-        /* HUD - PLACAR DE CINEMA */
-        .hud-main {
-            position: absolute; top: 0; width: 100%; display: none;
-            justify-content: space-between; padding: 40px 100px; z-index: 50;
-        }
-        .score-box { text-align: center; }
-        .num { font-size: 8rem; font-weight: 900; line-height: 0.7; letter-spacing: -5px; }
-        .label { font-size: 10px; letter-spacing: 5px; color: #444; margin-top: 15px; }
-
-        /* OVERLAYS */
-        .overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.95);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500; backdrop-filter: blur(20px);
-        }
+        /* OVERLAYS SYSTEM */
+        .overlay { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
 
-        .btn-tech {
-            width: 380px; padding: 22px; margin: 10px;
-            background: transparent; color: #fff; border: 1px solid #333;
-            font-family: 'Orbitron'; font-weight: 900; letter-spacing: 5px;
-            cursor: pointer; transition: 0.3s;
-        }
-        .btn-tech:hover { 
-            background: #fff; color: #000; box-shadow: 0 0 40px var(--p1); 
-            transform: scale(1.05);
-        }
+        /* LOADING ANIMATION */
+        #loader { font-size: 14px; color: var(--main); line-height: 1.5; text-align: left; width: 400px; }
+        .cursor-blink { animation: blink 0.8s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
 
-        canvas { display: block; }
-        #announcer {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 5rem; font-weight: 900; opacity: 0; z-index: 60; color: #fff;
+        /* HUD - PROFESSIONAL INTERFACE */
+        #hud {
+            position: absolute; top: 0; width: 100%; display: none;
+            justify-content: space-between; padding: 30px 100px; z-index: 100;
         }
+        .score-display { text-align: center; }
+        .val { font-family: 'Orbitron'; font-size: 7rem; font-weight: 900; line-height: 0.8; letter-spacing: -5px; }
+        .label { font-size: 10px; letter-spacing: 5px; color: #555; margin-top: 15px; }
 
-        /* MOUSE CUSTOM (EFEITO ESPECIAL) */
-        #cursor {
-            width: 20px; height: 20px; border: 2px solid var(--p1);
-            position: fixed; pointer-events: none; z-index: 9999;
-            border-radius: 50%; transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* BUTTONS */
+        .btn-core {
+            width: 320px; padding: 20px; margin: 10px; background: transparent;
+            color: #fff; border: 1px solid #222; font-family: 'Orbitron'; font-weight: 900;
+            letter-spacing: 4px; cursor: pointer; transition: 0.2s;
         }
+        .btn-core:hover { background: #fff; color: #000; box-shadow: 0 0 40px var(--main); }
+
+        #msg-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 6rem; font-weight: 900; opacity: 0; z-index: 200; pointer-events: none; }
+        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
+        #custom-pointer { position: fixed; width: 15px; height: 15px; background: #fff; border-radius: 50%; pointer-events: none; z-index: 2000; mix-blend-mode: difference; }
     </style>
 </head>
 <body>
 
-    <div id="cursor"></div>
+<div id="custom-pointer"></div>
 
-    <div id="wrapper">
-        <div id="console-log"></div>
-        
-        <div class="hud-main" id="hud">
-            <div class="score-box" style="color: var(--p1)">
-                <div id="s1" class="num">0</div>
-                <div class="label">KING_ACADEMY</div>
-            </div>
-            <div class="score-box" style="color: var(--p2)">
-                <div id="s2" class="num">0</div>
-                <div id="p2-tag" class="label">CORE_AI_v8</div>
-            </div>
-        </div>
-
-        <div id="announcer">CRITICAL HIT!</div>
-        <canvas id="gameCanvas" width="1100" height="650"></canvas>
-
-        <div id="scr-start" class="overlay">
-            <h1 style="font-size: 4rem; margin-bottom: 5px;">KING <span style="color: var(--p2)">PONG</span></h1>
-            <p style="color: var(--p1); letter-spacing: 12px; font-size: 11px; margin-bottom: 50px;">ADVANCED TECH SIMULATOR</p>
-            <button class="btn-tech" onclick="App.boot('ia')">EXECUTE: VS_MACHINE</button>
-            <button class="btn-tech" onclick="App.boot('pvp')" style="border-color: var(--p2)">EXECUTE: 1_VS_1_PVP</button>
-            <div style="margin-top: 50px; font-family: 'Fira Code'; font-size: 10px; color: #333;">STATUS: STANDBY... READY FOR DEPLOY.</div>
-        </div>
-
-        <div id="scr-pause" class="overlay hidden">
-            <h2 style="font-size: 4rem; color: var(--accent)">SYSTEM_HALTED</h2>
-            <button class="btn-tech" onclick="App.pause()">RESUME_PROCESS</button>
+<div id="stage">
+    <div id="scr-boot" class="overlay">
+        <div id="loader">
+            <div>> INITIALIZING KING_OS...</div>
+            <div id="load-1"></div>
+            <div id="load-2"></div>
+            <div id="load-3"></div>
+            <div style="margin-top: 20px;">SYSTEM STATUS: <span style="color: #0f0;">READY</span> <span class="cursor-blink">_</span></div>
         </div>
     </div>
 
+    <div id="scr-menu" class="overlay hidden">
+        <h1 style="font-family: 'Orbitron'; font-size: 3rem; margin-bottom: 30px;">KING_CORE <span style="color: var(--alt)">v9.0</span></h1>
+        <button class="btn-core" onclick="Engine.init('ia')">LOCAL_IA_LINK</button>
+        <button class="btn-core" onclick="Engine.init('pvp')" style="border-color: var(--alt)">DUAL_CORE_PVP</button>
+        <p style="margin-top: 30px; font-size: 10px; color: #333;">AUTHORIZATION: KING DEV ACADEMY SENIOR</p>
+    </div>
+
+    <div id="hud">
+        <div class="score-display" style="color: var(--main)">
+            <div id="s1" class="val">0</div><div class="label">KING_OPERATOR</div>
+        </div>
+        <div class="score-display" style="color: var(--alt)">
+            <div id="s2" class="val">0</div><div id="p2-tag" class="label">NEURAL_BOT</div>
+        </div>
+    </div>
+
+    <div id="msg-box">POINT</div>
+    <canvas id="canvas" width="1150" height="650"></canvas>
+</div>
+
 <script>
 /**
- * KING PONG - TECH SUPREMACY EDITION
- * Personalizado para King Dev Academy
+ * KING NEURAL ENGINE - HIGH PERFORMANCE
  */
 
-// LOG SYSTEM (AQUELE QUE DÁ MORAL)
-const Logger = {
-    el: document.getElementById('console-log'),
-    log(msg) {
-        const line = document.createElement('div');
-        line.innerText = `> ${new Date().toLocaleTimeString()} | ${msg}`;
-        this.el.appendChild(line);
-        if(this.el.childNodes.length > 8) this.el.removeChild(this.el.firstChild);
-        this.el.scrollTop = this.el.scrollHeight;
-    }
-};
-
-const AudioSys = {
+const AudioCore = {
     ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    play(f, t, d, v=0.08) {
+    out(f, d, t='square', v=0.05) {
         const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
         o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
         g.gain.setValueAtTime(v, this.ctx.currentTime);
@@ -137,67 +96,65 @@ const AudioSys = {
     }
 };
 
-const App = {
-    active: false, isPaused: false, mode: 'ia',
-    canvas: null, ctx: null,
-    ball: { x: 550, y: 325, vx: 9, vy: 9, speed: 10, trail: [] },
-    p1: { y: 270, score: 0 }, p2: { y: 270, score: 0, error: 0 },
+const Engine = {
+    active: false, paused: false, mode: 'ia',
+    cvs: null, ctx: null,
+    ball: { x: 575, y: 325, vx: 0, vy: 0, trail: [] },
+    p1: { y: 275, s: 0 }, p2: { y: 275, s: 0, err: 0 },
     keys: {}, fx: [], shake: 0,
 
-    boot(mode) {
-        this.mode = mode;
-        this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        document.getElementById('scr-start').classList.add('hidden');
+    bootSequence() {
+        const lines = [
+            {id: 'load-1', text: '> LOADING KERNEL... OK', delay: 500},
+            {id: 'load-2', text: '> MOUNTING NEURAL_NET... OK', delay: 1200},
+            {id: 'load-3', text: '> ESTABLISHING KING_ACADEMY_LINK... OK', delay: 2000}
+        ];
+        lines.forEach(l => {
+            setTimeout(() => { document.getElementById(l.id).innerText = l.text; }, l.delay);
+        });
+        setTimeout(() => {
+            document.getElementById('scr-boot').classList.add('hidden');
+            document.getElementById('scr-menu').classList.remove('hidden');
+        }, 2800);
+    },
+
+    init(m) {
+        this.mode = m;
+        this.cvs = document.getElementById('canvas');
+        this.ctx = this.cvs.getContext('2d');
+        document.getElementById('scr-menu').classList.add('hidden');
         document.getElementById('hud').style.display = 'flex';
-        if(mode === 'pvp') document.getElementById('p2-tag').innerText = "PLAYER_02";
-
-        window.addEventListener('keydown', e => {
-            this.keys[e.code] = true;
-            if(e.code === 'Escape' || e.code === 'KeyP') this.pause();
-        });
-        window.addEventListener('keyup', e => this.keys[e.code] = false);
+        if(m === 'pvp') document.getElementById('p2-tag').innerText = "OPERATOR_02";
         
-        // Mouse custom logic
+        window.addEventListener('keydown', e => { this.keys[e.code] = true; });
+        window.addEventListener('keyup', e => this.keys[e.code] = false);
         document.addEventListener('mousemove', e => {
-            const c = document.getElementById('cursor');
-            c.style.left = e.clientX + 'px';
-            c.style.top = e.clientY + 'px';
+            const p = document.getElementById('custom-pointer');
+            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
         });
 
-        this.active = true;
-        Logger.log(`System Boot: Mode ${mode.toUpperCase()}`);
-        this.resetBall(); this.loop();
+        this.active = true; this.reset(); this.loop();
     },
 
-    pause() {
-        this.isPaused = !this.isPaused;
-        document.getElementById('scr-pause').classList.toggle('hidden', !this.isPaused);
-        Logger.log(this.isPaused ? "Process Halted" : "Process Resumed");
-        if(!this.isPaused) this.loop();
-    },
-
-    resetBall() {
-        this.ball.x = 550; this.ball.y = 325;
-        this.ball.vx = (Math.random() > 0.5 ? 1 : -1) * 10;
-        this.ball.vy = (Math.random() - 0.5) * 15;
+    reset() {
+        this.ball.x = 575; this.ball.y = 325;
+        this.ball.vx = (Math.random() > 0.5 ? 11 : -11);
+        this.ball.vy = (Math.random() - 0.5) * 14;
         this.ball.trail = [];
-        Logger.log("Recalibrating ball trajectory...");
     },
 
     update() {
-        if(!this.active || this.isPaused) return;
+        if(!this.active || this.paused) return;
 
-        // P1 Movement
+        // Player Controls (Smoothed)
         if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 15;
         if(this.keys['KeyS'] && this.p1.y < 530) this.p1.y += 15;
 
-        // P2 Logic
         if(this.mode === 'pvp') {
             if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 15;
             if(this.keys['ArrowDown'] && this.p2.y < 530) this.p2.y += 15;
         } else {
-            let target = this.ball.y - 55 + this.p2.error;
+            let target = this.ball.y - 55 + this.p2.err;
             this.p2.y += (target - this.p2.y) * 0.12;
         }
 
@@ -205,97 +162,80 @@ const App = {
         this.ball.trail.push({x: this.ball.x, y: this.ball.y});
         if(this.ball.trail.length > 15) this.ball.trail.shift();
 
-        // Boundary Logic
-        if(this.ball.y < 15 || this.ball.y > 635) {
-            this.ball.vy *= -1; this.shake = 8;
-            AudioSys.play(150, 'sine', 0.1);
+        // Wall Logic
+        if(this.ball.y < 15 || this.ball.y > 635) { 
+            this.ball.vy *= -1; this.shake = 6; 
+            AudioCore.out(120, 0.1, 'sine');
         }
 
-        // Collision Logic
-        let isP1 = this.ball.x < 550;
-        let p = isP1 ? this.p1 : this.p2;
-        let px = isP1 ? 40 : 1045;
+        // Paddle Collision
+        let isP1 = this.ball.x < 575;
+        let pad = isP1 ? this.p1 : this.p2;
+        let px = isP1 ? 40 : 1095;
 
-        if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > p.y && this.ball.y < p.y+110) {
-            this.ball.vx *= -1.06;
-            this.ball.vy = (this.ball.y - (p.y+55)) * 0.4;
-            this.shake = 15;
-            AudioSys.play(300, 'square', 0.1);
-            Logger.log(`Impact detected: ${isP1 ? 'P1' : 'P2'}`);
-            this.createFX(this.ball.x, this.ball.y, isP1 ? '#00f2ff' : '#ff007f');
-            if(this.mode === 'ia') this.p2.error = (Math.random()-0.5)*90;
+        if(this.ball.x > px && this.ball.x < px+15 && this.ball.y > pad.y && this.ball.y < pad.y+110) {
+            this.ball.vx *= -1.05;
+            this.ball.vy = (this.ball.y - (pad.y+55)) * 0.45;
+            this.shake = 12;
+            AudioCore.out(250, 0.1);
+            this.createExplosion(this.ball.x, this.ball.y, isP1 ? '#00f2ff' : '#ff007f');
+            if(this.mode === 'ia') this.p2.err = (Math.random()-0.5)*80;
         }
 
-        // Scoring
         if(this.ball.x < 0) this.score(2);
-        if(this.ball.x > 1100) this.score(1);
+        if(this.ball.x > 1150) this.score(1);
 
-        this.fx.forEach((f, i) => {
-            f.x += f.vx; f.y += f.vy; f.life -= 0.03;
-            if(f.life <= 0) this.fx.splice(i, 1);
-        });
+        this.fx.forEach((f, i) => { f.x += f.vx; f.y += f.vy; f.l -= 0.04; if(f.l<=0) this.fx.splice(i,1); });
         if(this.shake > 0) this.shake *= 0.9;
     },
 
-    createFX(x, y, color) {
-        for(let i=0; i<15; i++) {
-            this.fx.push({x, y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, life: 1, color});
-        }
+    createExplosion(x, y, color) {
+        for(let i=0; i<10; i++) this.fx.push({x, y, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, l:1, color});
     },
 
     score(p) {
-        p === 1 ? this.p1.score++ : this.p2.score++;
-        document.getElementById('s1').innerText = this.p1.score;
-        document.getElementById('s2').innerText = this.p2.score;
-        AudioSys.play(60, 'sawtooth', 0.6, 0.2);
-        Logger.log(`SCORE UPDATED: P${p} GOAL`);
-        this.active = false; this.shake = 30;
-        
-        const ann = document.getElementById('announcer');
-        ann.style.opacity = 1;
-        setTimeout(() => { ann.style.opacity = 0; this.active = true; this.resetBall(); this.loop(); }, 1200);
+        p === 1 ? this.p1.s++ : this.p2.s++;
+        document.getElementById('s1').innerText = this.p1.s;
+        document.getElementById('s2').innerText = this.p2.s;
+        this.active = false; this.shake = 25;
+        AudioCore.out(50, 0.5, 'sawtooth', 0.1);
+        const box = document.getElementById('msg-box');
+        box.style.opacity = 1; box.style.color = p === 1 ? '#00f2ff' : '#ff007f';
+        setTimeout(() => { box.style.opacity = 0; this.active = true; this.reset(); this.loop(); }, 1000);
     },
 
     draw() {
         const ctx = this.ctx; ctx.save();
         if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-        
-        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1100,650);
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1150,650);
 
-        // GRID EFFECT
-        ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-        for(let i=0; i<1100; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,650); ctx.stroke(); }
+        // Grid (Subtle)
+        ctx.strokeStyle = '#0a0a0a';
+        for(let i=0; i<1150; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,650); ctx.stroke(); }
 
-        // TRAIL
+        // Trail
         this.ball.trail.forEach((t, i) => {
-            ctx.fillStyle = `rgba(0, 242, 255, ${i/40})`;
-            ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*8, 0, Math.PI*2); ctx.fill();
         });
 
-        // PADDLES
-        ctx.shadowBlur = 20;
+        // Paddles
+        ctx.shadowBlur = 15;
         ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(40, this.p1.y, 15, 110);
-        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1045, this.p2.y, 15, 110);
+        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1095, this.p2.y, 15, 110);
         
-        // BALL
         ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
         ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2); ctx.fill();
 
-        // FX
         ctx.shadowBlur = 0;
-        this.fx.forEach(f => {
-            ctx.globalAlpha = f.life; ctx.fillStyle = f.color;
-            ctx.fillRect(f.x, f.y, 3, 3);
-        });
+        this.fx.forEach(f => { ctx.globalAlpha = f.l; ctx.fillStyle = f.color; ctx.fillRect(f.x, f.y, 2, 2); });
         ctx.restore();
     },
 
-    loop() {
-        if(!this.active || this.isPaused) return;
-        this.update(); this.draw();
-        requestAnimationFrame(() => this.loop());
-    }
+    loop() { if(this.active && !this.paused) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); } }
 };
+
+window.onload = () => Engine.bootSequence();
 </script>
 </body>
 </html>
