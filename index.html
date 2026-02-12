@@ -2,198 +2,164 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING PONG | ULTIMATE ASCENSION</title>
+    <title>KING PONG | EXORCISM EDITION</title>
     <style>
         :root {
-            --king-blue: #00f2ff;
-            --king-pink: #ff007f;
-            --king-gold: #ffcc00;
-            --bg-deep: #020202;
+            --p1: #00f2ff;
+            --p2: #ff007f;
+            --bg: #030303;
+            --panel-bg: rgba(10, 10, 10, 0.95);
         }
 
         * { box-sizing: border-box; outline: none; }
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: var(--bg-deep); color: #fff;
-            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            background: var(--bg); color: #fff;
+            font-family: 'Orbitron', sans-serif;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
 
-        /* CONTAINER PRINCIPAL */
-        #stage-master {
+        #master-stage {
             position: relative; width: 1000px; height: 600px;
-            border: 1px solid #222; overflow: hidden;
+            background: #000; border: 1px solid #222;
             box-shadow: 0 0 100px rgba(0,0,0,1);
-            background: #000;
         }
 
-        /* SCANLINES VIBE ACADEMY */
-        .scanlines {
+        /* SCANLINES */
+        .vfx {
             position: absolute; inset: 0; pointer-events: none; z-index: 1000;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
             background-size: 100% 4px;
         }
 
-        /* PLACAR DE ELITE */
-        #hud-top {
+        /* HUD PLACAR */
+        #hud {
             position: absolute; top: 0; width: 100%;
             display: none; justify-content: space-between;
             padding: 30px 100px; z-index: 100; pointer-events: none;
         }
-        .score-card { text-align: center; }
-        .score-val { 
-            font-size: 8rem; font-weight: 900; line-height: 0.8;
-            filter: drop-shadow(0 0 15px currentColor);
-        }
-        .score-label { font-size: 10px; letter-spacing: 5px; opacity: 0.5; margin-top: 10px; }
+        .score-val { font-size: 9rem; font-weight: 900; line-height: 0.8; text-shadow: 0 0 20px currentColor; }
+        .score-label { font-size: 10px; letter-spacing: 5px; opacity: 0.5; margin-top: 10px; text-align: center; }
 
-        /* TELAS E INTERFACES */
+        /* INTERFACES */
         .overlay {
             position: absolute; inset: 0; background: rgba(0,0,0,0.9);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500; backdrop-filter: blur(10px);
-            transition: opacity 0.3s;
+            z-index: 500; backdrop-filter: blur(8px);
         }
         .hidden { display: none !important; }
 
-        .panel {
-            background: #080808; padding: 50px; border-radius: 20px;
-            border: 1px solid #333; text-align: center; position: relative;
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
-        }
-
-        h1 { 
-            font-size: 4.5rem; margin: 0; 
-            background: linear-gradient(to right, #fff, #444);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        .king-card {
+            background: #080808; padding: 50px; border-radius: 15px;
+            border: 1px solid #333; text-align: center;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.05);
         }
 
         .btn-king {
-            width: 320px; padding: 20px; margin-top: 15px;
+            width: 350px; padding: 22px; margin-top: 15px;
             background: #111; color: #fff; border: 1px solid #444;
-            border-radius: 8px; font-weight: 900; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 3px;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px; font-weight: 900; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 4px; transition: 0.3s;
         }
-        .btn-king:hover { 
-            background: #fff; color: #000; transform: scale(1.05);
-            box-shadow: 0 0 30px var(--king-blue);
-        }
+        .btn-king:hover { background: #fff; color: #000; box-shadow: 0 0 20px var(--p1); }
 
-        /* CANVAS */
-        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
-
-        /* ANNOUNCER */
-        #msg {
+        canvas { display: block; }
+        #announcer {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 7rem; font-weight: 900; z-index: 200; opacity: 0;
-            pointer-events: none; font-style: italic;
+            font-size: 8rem; font-weight: 900; z-index: 200; opacity: 0; pointer-events: none;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div id="stage-master">
-        <div class="scanlines"></div>
+    <div id="master-stage">
+        <div class="vfx"></div>
         
-        <div id="hud-top">
-            <div class="score-card" style="color: var(--king-blue)">
-                <div id="s1" class="score-val">0</div>
-                <div class="score-label">KING CADET</div>
+        <div id="hud">
+            <div>
+                <div id="s1" class="score-val" style="color: var(--p1)">0</div>
+                <div class="score-label">KING ACADEMY</div>
             </div>
-            <div class="score-card" style="color: var(--king-pink)">
-                <div id="s2" class="score-val">0</div>
+            <div>
+                <div id="s2" class="score-val" style="color: var(--p2)">0</div>
                 <div class="score-label">SYSTEM CORE</div>
             </div>
         </div>
 
-        <div id="msg">GOAL!</div>
-
+        <div id="announcer">GOAL!</div>
         <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
         <div id="scr-start" class="overlay">
-            <div class="panel">
-                <h1>KING PONG</h1>
-                <p style="letter-spacing: 12px; color: var(--king-blue); font-size: 10px; margin-bottom: 30px;">ACADEMY TERMINAL v5.0</p>
-                <button class="btn-king" onclick="Engine.boot(0.09)">INICIAR PARTIDA</button>
-                <button class="btn-king" onclick="Engine.boot(0.25)" style="border-color: var(--king-pink)">MODO KING 👑</button>
+            <div class="king-card">
+                <h1 style="font-size: 4rem; margin: 0;">KING PONG</h1>
+                <p style="color: var(--p1); letter-spacing: 8px; font-size: 10px; margin-bottom: 30px;">EXORCISM PROTOCOL v6.0</p>
+                <button class="btn-king" onclick="Engine.boot(0.06)">DIFICULDADE: ACADEMY</button>
+                <button class="btn-king" onclick="Engine.boot(0.12)" style="border-color: var(--p2)">DIFICULDADE: KING 👑</button>
             </div>
         </div>
 
         <div id="scr-pause" class="overlay hidden">
-            <div class="panel" style="border-color: var(--king-gold)">
-                <h2 style="font-size: 3rem; color: var(--king-gold);">GAME PAUSED</h2>
-                <button class="btn-king" onclick="Engine.togglePause()">RESUME</button>
-                <button class="btn-king" onclick="location.reload()">REBOOT</button>
-            </div>
+            <h2 style="font-size: 4rem; color: #ffcc00;">PAUSED</h2>
+            <button class="btn-king" onclick="Engine.togglePause()">RESUME</button>
         </div>
 
         <div id="scr-over" class="overlay hidden">
-            <div class="panel">
-                <h2 id="winner-name" style="font-size: 3rem;">-</h2>
-                <button class="btn-king" onclick="location.reload()">NEW MATCH</button>
-            </div>
+            <h2 id="win-txt" style="font-size: 3rem;">-</h2>
+            <button class="btn-king" onclick="location.reload()">REBOOT TERMINAL</button>
         </div>
     </div>
 
 <script>
 /**
- * KING ENGINE ULTIMATE - DESENVOLVIDO POR KING DEV ACADEMY
- * ESTABILIDADE BRUTA + INTERFACE DE ELITE
+ * KING ENGINE v6.0 - THE EXORCISM
+ * Ajustado para remover o "espírito obsessor" do Bot.
  */
 
-// SISTEMA DE ÁUDIO "ANTI-BROXA" (Gera sons via código)
-const AudioEngine = {
+const SFX = {
     ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    play(freq, type, dur) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + dur);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + dur);
+    play(f, t, d, v=0.1) {
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
+        g.gain.setValueAtTime(v, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + d);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(); o.stop(this.ctx.currentTime + d);
     },
-    hit() { this.play(150, 'square', 0.1); },
-    wall() { this.play(100, 'sine', 0.05); },
-    goal() { this.play(50, 'sawtooth', 0.5); }
+    hit() { this.play(200, 'square', 0.1); },
+    wall() { this.play(120, 'sine', 0.1); },
+    goal() { this.play(60, 'sawtooth', 0.6, 0.2); }
 };
 
 const Engine = {
-    active: false,
-    paused: false,
+    active: false, paused: false,
     canvas: null, ctx: null,
     iaLvl: 0.1, shake: 0,
     
     ball: { x: 500, y: 300, vx: 0, vy: 0, speed: 10, trail: [] },
-    p1: { y: 245, score: 0, color: '#00f2ff' },
-    p2: { y: 245, score: 0, color: '#ff007f' },
-    keys: {}, particles: [],
+    p1: { y: 245, score: 0 },
+    p2: { y: 245, score: 0, errorY: 0 }, // O segredo da alma humana
+    keys: {}, fx: [],
 
     boot(lvl) {
         this.iaLvl = lvl;
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        
         document.getElementById('scr-start').classList.add('hidden');
-        document.getElementById('hud-top').style.display = 'flex';
+        document.getElementById('hud').style.display = 'flex';
         
         window.addEventListener('keydown', e => {
             this.keys[e.code] = true;
             if(e.code === 'Escape' || e.code === 'KeyP') this.togglePause();
         });
         window.addEventListener('keyup', e => this.keys[e.code] = false);
-
-        this.active = true;
-        this.resetBall();
-        this.loop();
+        
+        this.active = true; this.resetBall(); this.loop();
     },
 
     togglePause() {
-        if(!this.active && !this.paused) return;
         this.paused = !this.paused;
         document.getElementById('scr-pause').classList.toggle('hidden', !this.paused);
         if(!this.paused) this.loop();
@@ -201,19 +167,10 @@ const Engine = {
 
     resetBall() {
         this.ball.x = 500; this.ball.y = 300; this.ball.speed = 10;
-        let side = Math.random() > 0.5 ? 1 : -1;
-        this.ball.vx = side * this.ball.speed;
-        this.ball.vy = (Math.random() - 0.5) * 12;
+        this.ball.vx = (Math.random() > 0.5 ? 1 : -1) * this.ball.speed;
+        this.ball.vy = (Math.random() - 0.5) * 10;
         this.ball.trail = [];
-    },
-
-    spawnParticles(x, y, color) {
-        for(let i=0; i<15; i++) {
-            this.particles.push({
-                x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12,
-                life: 1.0, color
-            });
-        }
+        this.p2.errorY = (Math.random() - 0.5) * 60; // Novo erro aleatório a cada saque
     },
 
     update() {
@@ -223,22 +180,19 @@ const Engine = {
         if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 14;
         if(this.keys['KeyS'] && this.p1.y < 480) this.p1.y += 14;
 
-        // IA Titan
-        let target = this.ball.y - 55;
-        this.p2.y += (target - this.p2.y) * this.iaLvl * 10;
-        if(this.p2.y < 10) this.p2.y = 10;
-        if(this.p2.y > 480) this.p2.y = 480;
+        // IA EXORCIZADA (Agora ela erra!)
+        // O Bot segue a bola + um erro aleatório para não ser perfeito
+        let target = this.ball.y - 55 + this.p2.errorY;
+        this.p2.y += (target - this.p2.y) * this.iaLvl * 8; // IA mais lenta e humana
 
-        // Bola
-        this.ball.x += this.ball.vx;
-        this.ball.y += this.ball.vy;
+        // Bola logic
+        this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
         this.ball.trail.push({x: this.ball.x, y: this.ball.y});
         if(this.ball.trail.length > 15) this.ball.trail.shift();
 
         // Colisões Parede
         if(this.ball.y < 15 || this.ball.y > 585) {
-            this.ball.vy *= -1; this.shake = 8;
-            AudioEngine.wall();
+            this.ball.vy *= -1; this.shake = 8; SFX.wall();
         }
 
         // Colisões Raquetes
@@ -247,92 +201,65 @@ const Engine = {
 
         if(this.ball.x > px && this.ball.x < px + 15 && this.ball.y > paddle.y && this.ball.y < paddle.y + 110) {
             this.ball.vx *= -1.05;
-            this.ball.vy = (this.ball.y - (paddle.y + 55)) * 0.3;
-            this.shake = 15;
-            AudioEngine.hit();
-            this.spawnParticles(this.ball.x, this.ball.y, paddle.color);
+            this.ball.vy = (this.ball.y - (paddle.y + 55)) * 0.35;
+            this.shake = 15; SFX.hit();
+            // Muda o erro da IA após cada rebatida pra ela não ficar viciada
+            this.p2.errorY = (Math.random() - 0.5) * 50; 
         }
 
         // Gols
-        if(this.ball.x < 0) this.scoreGoal(2);
-        if(this.ball.x > 1000) this.scoreGoal(1);
+        if(this.ball.x < 0) this.score(2);
+        if(this.ball.x > 1000) this.score(1);
 
-        // Partículas
-        this.particles.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.life -= 0.03;
-            if(p.life <= 0) this.particles.splice(i, 1);
-        });
         if(this.shake > 0) this.shake *= 0.9;
     },
 
-    scoreGoal(p) {
+    score(p) {
         if(p === 1) this.p1.score++; else this.p2.score++;
         document.getElementById('s1').innerText = this.p1.score;
         document.getElementById('s2').innerText = this.p2.score;
+        SFX.goal(); this.shake = 30; this.active = false;
         
-        AudioEngine.goal();
-        this.shake = 30; this.active = false;
-        
-        const m = document.getElementById('msg');
-        m.innerText = "POINT!";
-        m.style.color = p === 1 ? this.p1.color : this.p2.color;
-        m.style.opacity = 1;
+        const ann = document.getElementById('announcer');
+        ann.style.opacity = 1; ann.style.color = p === 1 ? '#00f2ff' : '#ff007f';
 
         setTimeout(() => {
-            m.style.opacity = 0;
+            ann.style.opacity = 0;
             if(this.p1.score >= 10 || this.p2.score >= 10) {
                 this.gameOver(p === 1 ? "KING CADET" : "SYSTEM CORE");
             } else {
                 this.active = true; this.resetBall(); this.loop();
             }
-        }, 1200);
+        }, 1000);
     },
 
-    gameOver(winner) {
+    gameOver(w) {
         this.active = false;
         document.getElementById('scr-over').classList.remove('hidden');
-        const txt = document.getElementById('winner-name');
-        txt.innerText = winner + " WINS";
-        txt.style.color = winner.includes("KING") ? this.p1.color : this.p2.color;
+        document.getElementById('win-txt').innerText = w + " WINS";
     },
 
     draw() {
-        const ctx = this.ctx;
-        ctx.save();
+        const ctx = this.ctx; ctx.save();
         if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-        
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 1000, 600);
 
-        // Linha Central
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-        ctx.setLineDash([10, 10]);
-        ctx.strokeRect(500, 10, 1, 580);
-        ctx.setLineDash([]);
-
-        // Rastro Bola
+        // Rastro
         this.ball.trail.forEach((t, i) => {
             ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
             ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*10, 0, Math.PI*2); ctx.fill();
         });
 
         // Raquetes
-        ctx.shadowBlur = 20;
-        ctx.fillStyle = this.p1.color; ctx.shadowColor = this.p1.color;
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff';
         ctx.fillRect(35, this.p1.y, 15, 110);
-        
-        ctx.fillStyle = this.p2.color; ctx.shadowColor = this.p2.color;
+        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f';
         ctx.fillRect(950, this.p2.y, 15, 110);
 
         // Bola
         ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
         ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2); ctx.fill();
-
-        // FX
-        ctx.shadowBlur = 0;
-        this.particles.forEach(p => {
-            ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, 3, 3);
-        });
         ctx.restore();
     },
 
