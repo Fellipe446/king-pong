@@ -3,97 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KING PONG | Elite Arena</title>
+    <title>KING PONG | Cyber Arena</title>
     <style>
         :root {
-            --primary: #00f2ff; /* Ciano Neon */
-            --secondary: #ff007f; /* Rosa Choque */
-            --accent: #39ff14; /* Verde Limão */
-            --bg: #050505;
-            --glass: rgba(20, 20, 20, 0.9);
+            --p1-color: #00d2ff;
+            --p2-color: #ff007f;
+            --win-color: #39ff14;
+            --panel-bg: rgba(10, 10, 10, 0.95);
         }
 
         body {
-            background-color: var(--bg);
+            background: #050505;
             color: #fff;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            width: 100vw;
             overflow: hidden;
-            touch-action: none;
         }
 
-        /* HUD - PLACAR EXTERNO ESTILIZADO */
-        #hud {
+        /* --- HUD DE ALTO NÍVEL --- */
+        #top-hud {
             width: 95%;
             max-width: 1000px;
             display: none;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
-            margin-bottom: 20px;
-            background: var(--glass);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 15px 40px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+            border-radius: 0 0 20px 20px;
         }
 
-        .player-card { text-align: center; }
-        .p-name { font-size: 10px; letter-spacing: 2px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
-        .p-score { font-size: 4rem; font-weight: 900; line-height: 1; }
-        .p-sets { font-size: 12px; color: var(--accent); font-weight: bold; margin-top: 5px; display: block; }
+        .score-container { text-align: center; min-width: 120px; }
+        .score-val { font-size: 5rem; font-weight: 900; line-height: 1; margin: 0; text-shadow: 0 0 20px currentColor; }
+        .set-badge { font-size: 11px; font-weight: bold; border: 1px solid var(--win-color); color: var(--win-color); padding: 3px 10px; border-radius: 20px; text-transform: uppercase; margin-top: 10px; display: inline-block; }
 
-        /* INTERFACES (MENUS) */
+        /* --- PAINÉIS DECORADOS --- */
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            background: rgba(0,0,0,0.9);
             display: flex; align-items: center; justify-content: center;
             z-index: 1000;
         }
 
         .panel {
-            background: var(--glass);
-            padding: 50px;
-            border-radius: 30px;
+            background: var(--panel-bg);
+            padding: 60px;
+            border-radius: 40px;
             text-align: center;
-            width: 90%;
+            width: 85%;
             max-width: 400px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            backdrop-filter: blur(15px);
+            border: 2px solid #222;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+            overflow: hidden;
         }
 
-        h1 { font-size: 4rem; margin: 0; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(0,242,255,0.3)); }
-        .brand-tag { font-size: 9px; letter-spacing: 6px; color: #fff; opacity: 0.4; text-transform: uppercase; margin-bottom: 40px; display: block; }
+        /* Linha decorativa animada no painel */
+        .panel::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, var(--p1-color));
+            animation: rotate 4s linear infinite; z-index: -1;
+        }
+        .panel::after {
+            content: ''; position: absolute; inset: 4px; background: #0a0a0a; border-radius: 36px; z-index: -1;
+        }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        h1 { font-size: 4rem; margin: 0; letter-spacing: -2px; background: linear-gradient(90deg, var(--p1-color), var(--p2-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .academy-tag { font-size: 10px; letter-spacing: 5px; color: #fff; opacity: 0.5; margin-bottom: 30px; display: block; }
 
         .btn-group { display: flex; flex-direction: column; gap: 15px; }
         button {
-            background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1);
             padding: 20px; font-weight: bold; cursor: pointer; border-radius: 15px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s; text-transform: uppercase; font-size: 14px;
         }
-        button:hover { background: #fff; color: #000; transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        button:hover { background: #fff; color: #000; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
-        /* CANVAS E CAMPO */
+        /* --- CAMPO --- */
         canvas { 
-            background: #000; 
-            display: none; 
-            max-width: 95vw; 
-            max-height: 75vh;
-            border-radius: 8px;
-            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            background: #000; display: none; 
+            max-width: 95vw; max-height: 70vh;
+            border-radius: 10px;
         }
 
-        #msg-box {
-            position: absolute; font-size: 5rem; font-weight: 900;
-            z-index: 500; opacity: 0; pointer-events: none; transition: 0.4s;
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        #announcer {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 6rem; font-weight: 900; z-index: 500; opacity: 0; pointer-events: none;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .hidden { display: none !important; }
@@ -101,97 +106,99 @@
 </head>
 <body>
 
-    <div id="msg-box">SET!</div>
+    <div id="announcer">SET!</div>
 
-    <div id="hud">
-        <div class="player-card">
-            <div class="p-name">Player 1 (WASD)</div>
-            <div id="p1-pts" class="p-score" style="color: var(--primary)">0</div>
-            <span id="p1-sets" class="p-sets">SETS: 0</span>
+    <div id="top-hud">
+        <div class="score-container" style="color: var(--p1-color)">
+            <p style="font-size: 10px; color: #555; margin: 0;">PLAYER 1</p>
+            <div id="p1-pts" class="score-val">0</div>
+            <div id="p1-sets" class="set-badge">SETS: 0</div>
         </div>
+        
         <div style="text-align: center">
-            <div style="font-size: 12px; font-weight: bold; opacity: 0.3;">KING DEV ACADEMY</div>
-            <div id="match-info" style="font-size: 14px; color: #555;">MELHOR DE 3</div>
+            <div style="font-size: 14px; color: #fff; font-weight: bold; letter-spacing: 2px;">ARENA KING</div>
+            <div id="match-info" style="font-size: 10px; color: #444; margin-top: 5px;">MODO SELECIONADO</div>
         </div>
-        <div class="player-card">
-            <div class="p-name">Player 2 (SETAS)</div>
-            <div id="p2-pts" class="p-score" style="color: var(--secondary)">0</div>
-            <span id="p2-sets" class="p-sets">SETS: 0</span>
+
+        <div class="score-container" style="color: var(--p2-color)">
+            <p style="font-size: 10px; color: #555; margin: 0;">PLAYER 2</p>
+            <div id="p2-pts" class="score-val">0</div>
+            <div id="p2-sets" class="set-badge">SETS: 0</div>
         </div>
     </div>
 
-    <canvas id="arena" width="1000" height="600"></canvas>
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
-    <div id="menu-start" class="overlay">
+    <div id="menu-main" class="overlay">
         <div class="panel">
             <h1>PONG</h1>
-            <span class="brand-tag">King Dev Academy</span>
+            <span class="academy-tag">KING DEV ACADEMY</span>
             <div class="btn-group">
-                <button onclick="nav('menu-ia')">MODO SOLO</button>
-                <button onclick="nav('menu-pvp')" style="border-color: var(--secondary)">1 VS 1 LOCAL</button>
+                <button onclick="nav('menu-bot')">VS COMPUTADOR</button>
+                <button onclick="nav('menu-pvp')">1 VS 1 LOCAL</button>
             </div>
         </div>
     </div>
 
-    <div id="menu-ia" class="overlay hidden">
+    <div id="menu-bot" class="overlay hidden">
         <div class="panel">
-            <h2 style="color: var(--primary)">DIFICULDADE IA</h2>
+            <h2 style="color: var(--p1-color)">DIFICULDADE IA</h2>
             <div class="btn-group">
-                <button onclick="start('bot', 0.05, 1)">INICIANTE</button>
-                <button onclick="start('bot', 0.10, 3)">PRO (M3)</button>
-                <button onclick="start('bot', 0.18, 3)">LENDA (M3)</button>
-                <button onclick="nav('menu-start')" style="border:none; font-size:11px; color:#555">VOLTAR</button>
+                <button onclick="bootGame('bot', 0.05, 1)">INICIANTE</button>
+                <button onclick="bootGame('bot', 0.10, 3)">VETERANO (M3)</button>
+                <button onclick="bootGame('bot', 0.18, 3)">MESTRE KING (M3)</button>
+                <button onclick="nav('menu-main')" style="border:none; font-size:11px;">VOLTAR</button>
             </div>
         </div>
     </div>
 
     <div id="menu-pvp" class="overlay hidden">
         <div class="panel">
-            <h2 style="color: var(--secondary)">MULTIPLAYER</h2>
+            <h2 style="color: var(--p2-color)">LOCAL PVP</h2>
             <div class="btn-group">
-                <button onclick="start('pvp', 0, 1)">SET ÚNICO</button>
-                <button onclick="start('pvp', 0, 3)">MELHOR DE 3</button>
-                <button onclick="nav('menu-start')" style="border:none; font-size:11px; color:#555">VOLTAR</button>
+                <button onclick="bootGame('pvp', 0, 1)">RODADA ÚNICA</button>
+                <button onclick="bootGame('pvp', 0, 3)">MELHOR DE 3</button>
+                <button onclick="nav('menu-main')" style="border:none; font-size:11px;">VOLTAR</button>
             </div>
         </div>
     </div>
 
     <div id="menu-win" class="overlay hidden">
         <div class="panel">
-            <h2 id="win-txt" style="font-size: 2.5rem; color: var(--accent)">VITÓRIA!</h2>
+            <h1 id="win-name" style="color: var(--win-color)">VITÓRIA</h1>
             <p id="win-desc" style="color: #666; margin-bottom: 30px;"></p>
-            <button onclick="location.reload()">VOLTAR AO INÍCIO</button>
+            <button onclick="location.reload()">REINICIAR ARENA</button>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById("arena");
+        const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        const hud = document.getElementById("hud");
-        const msg = document.getElementById("msg-box");
+        const hud = document.getElementById("top-hud");
+        const ann = document.getElementById("announcer");
         
-        let gameMode = 'bot', botSpeed = 0.05, winSets = 1, active = false, input = {};
-        const state = { p1P: 0, p1S: 0, p2P: 0, p2S: 0 };
+        let mode = 'bot', botLvl = 0.05, goal = 1, active = false, keys = {};
+        const score = { p1P: 0, p1S: 0, p2P: 0, p2S: 0 };
 
         const ball = {
-            x: 500, y: 300, r: 10, vX: 8, vY: 8, speed: 9,
+            x: 500, y: 300, r: 10, vX: 9, vY: 9, speed: 10,
             reset() {
-                this.x = 500; this.y = 300; this.speed = 9;
+                this.x = 500; this.y = 300; this.speed = 10;
                 this.vX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
                 this.vY = (Math.random() - 0.5) * 12;
             }
         };
 
-        const p1 = { y: 250, w: 15, h: 100, c: '#00f2ff' };
-        const p2 = { y: 250, w: 15, h: 100, c: '#ff007f' };
+        const p1 = { y: 250, w: 15, h: 100 };
+        const p2 = { y: 250, w: 15, h: 100 };
 
-        window.addEventListener("keydown", e => input[e.code] = true);
-        window.addEventListener("keyup", e => input[e.code] = false);
+        window.addEventListener("keydown", e => keys[e.code] = true);
+        window.addEventListener("keyup", e => keys[e.code] = false);
 
-        // Suporte Celular (Touch)
+        // Touch Celular
         canvas.addEventListener('touchmove', e => {
-            const rect = canvas.getBoundingClientRect();
-            p1.y = (e.touches[0].clientY - rect.top) * (600 / rect.height) - 50;
+            const r = canvas.getBoundingClientRect();
+            p1.y = (e.touches[0].clientY - r.top) * (600 / r.height) - 50;
         });
 
         function nav(id) {
@@ -199,111 +206,123 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function start(m, d, s) {
-            gameMode = m; botSpeed = d; winSets = (s === 3) ? 2 : 1;
-            nav('none');
+        function bootGame(m, d, s) {
+            mode = m; botLvl = d; goal = (s === 3) ? 2 : 1;
+            
+            // Forçar limpeza de interface
+            document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+            
             hud.style.display = 'flex';
             canvas.style.display = 'block';
             document.getElementById('match-info').innerText = s === 1 ? "RODADA ÚNICA" : "MELHOR DE 3";
+            
             active = true;
             ball.reset();
-            requestAnimationFrame(loop);
+            gameLoop(); // Inicia o loop apenas aqui
         }
 
         function update() {
             if (!active) return;
 
-            // Movimentação
-            if (input['KeyW'] && p1.y > 0) p1.y -= 12;
-            if (input['KeyS'] && p1.y < 500) p1.y += 12;
+            // P1
+            if (keys['KeyW'] && p1.y > 10) p1.y -= 12;
+            if (keys['KeyS'] && p1.y < 490) p1.y += 12;
 
-            if (gameMode === 'pvp') {
-                if (input['ArrowUp'] && p2.y > 0) p2.y -= 12;
-                if (input['ArrowDown'] && p2.y < 500) p2.y += 10;
+            // P2 (IA ou PLAYER)
+            if (mode === 'pvp') {
+                if (keys['ArrowUp'] && p2.y > 10) p2.y -= 12;
+                if (keys['ArrowDown'] && p2.y < 490) p2.y += 12;
             } else {
-                let target = ball.y - 50;
-                p2.y += (target - p2.y) * botSpeed * 8;
+                let center = p2.y + 50;
+                p2.y += (ball.y - center) * botLvl * 10;
             }
 
-            // Bola e Bordas (4 Linhas)
             ball.x += ball.vX; ball.y += ball.vY;
-            
-            if (ball.y <= 15) { ball.y = 15; ball.vY *= -1; } // Colisão Topo
-            if (ball.y >= 585) { ball.y = 585; ball.vY *= -1; } // Colisão Fundo
+
+            // Colisão Bordas (4 Linhas)
+            if (ball.y <= 15 || ball.y >= 585) {
+                ball.vY *= -1;
+                // Efeito visual de colisão pode ser adicionado aqui
+            }
 
             // Colisão Raquetes
             let paddle = (ball.x < 500) ? p1 : p2;
-            let px = (ball.x < 500) ? 30 : 970 - p2.w;
+            let px = (ball.x < 500) ? 30 : 970 - 15;
 
-            if (ball.x + ball.r > px && ball.x - ball.r < px + 15 && ball.y > paddle.y && ball.y < paddle.y + 100) {
+            if (ball.x + 10 > px && ball.x - 10 < px + 15 && ball.y > paddle.y && ball.y < paddle.y + 100) {
                 let impact = (ball.y - (paddle.y + 50)) / 50;
                 let angle = impact * (Math.PI / 4);
-                let dir = (ball.x < 500) ? 1 : -1;
-                ball.vX = dir * ball.speed * Math.cos(angle);
+                ball.vX = (ball.x < 500 ? 1 : -1) * ball.speed * Math.cos(angle);
                 ball.vY = ball.speed * Math.sin(angle);
-                ball.speed += 0.4;
+                ball.speed += 0.5;
             }
 
-            if (ball.x < 0) score(2);
-            if (ball.x > 1000) score(1);
+            if (ball.x < 0) scorePoint(2);
+            if (ball.x > 1000) scorePoint(1);
         }
 
-        function score(p) {
-            if (p === 1) state.p1P++; else state.p2P++;
+        function scorePoint(p) {
+            if (p === 1) score.p1P++; else score.p2P++;
             ball.reset();
 
-            if (state.p1P >= 5) { state.p1S++; state.p1P = 0; state.p2P = 0; announce("SET PARA P1!"); }
-            else if (state.p2P >= 5) { state.p2S++; state.p1P = 0; state.p2P = 0; announce("SET PARA P2!"); }
-            
-            document.getElementById('p1-pts').innerText = state.p1P;
-            document.getElementById('p2-pts').innerText = state.p2P;
-            document.getElementById('p1-sets').innerText = `SETS: ${state.p1S}`;
-            document.getElementById('p2-sets').innerText = `SETS: ${state.p2S}`;
+            if (score.p1P >= 5) { score.p1S++; score.p1P = 0; score.p2P = 0; announce("SET P1!", "#00d2ff"); }
+            if (score.p2P >= 5) { score.p2S++; score.p1P = 0; score.p2P = 0; announce("SET P2!", "#ff007f"); }
 
-            if (state.p1S >= winSets || state.p2S >= winSets) {
+            document.getElementById('p1-pts').innerText = score.p1P;
+            document.getElementById('p2-pts').innerText = score.p2P;
+            document.getElementById('p1-sets').innerText = `SETS: ${score.p1S}`;
+            document.getElementById('p2-sets').innerText = `SETS: ${score.p2S}`;
+
+            if (score.p1S >= goal || score.p2S >= goal) {
                 active = false;
                 setTimeout(() => {
-                    const winner = state.p1S > state.p2S ? "PLAYER 1" : "PLAYER 2";
                     nav('menu-win');
-                    document.getElementById('win-txt').innerText = winner + " VENCEU!";
-                    document.getElementById('win-desc').innerText = `Placar Final: ${state.p1S} sets a ${state.p2S}`;
+                    document.getElementById('win-name').innerText = score.p1S > score.p2S ? "P1 VENCEU!" : "P2 VENCEU!";
+                    document.getElementById('win-desc').innerText = `RESULTADO FINAL: ${score.p1S} A ${score.p2S}`;
                 }, 1000);
             }
         }
 
-        function announce(t) {
-            msg.innerText = t; msg.style.opacity = 1;
-            setTimeout(() => msg.style.opacity = 0, 1500);
+        function announce(t, c) {
+            ann.innerText = t; ann.style.color = c; ann.style.opacity = 1; ann.style.transform = "translate(-50%, -50%) scale(1.2)";
+            setTimeout(() => { ann.style.opacity = 0; ann.style.transform = "translate(-50%, -50%) scale(1)"; }, 1200);
         }
 
         function draw() {
-            ctx.fillStyle = "#000"; ctx.fillRect(0,0, 1000, 600);
+            ctx.clearRect(0, 0, 1000, 600);
 
-            // CAMPO: Apenas a linha externa e rede
+            // CAMPO: Linha Única de borda e detalhe central
             ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 4;
-            ctx.strokeRect(10, 10, 980, 580); // Borda principal de colisão
+            ctx.strokeRect(10, 10, 980, 580); 
             
-            // Rede central fina
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath(); ctx.moveTo(500, 15); ctx.lineTo(500, 585); ctx.stroke();
+            // Rede central neon
+            ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.setLineDash([10, 10]);
+            ctx.beginPath(); ctx.moveTo(500, 10); ctx.lineTo(500, 590); ctx.stroke();
             ctx.setLineDash([]);
 
-            // Raquetes com brilho
-            drawGlowRect(30, p1.y, p1.w, p1.h, p1.c);
-            drawGlowRect(955, p2.y, p2.w, p2.h, p2.c);
+            // Raquetes Dinâmicas
+            drawPaddle(30, p1.y, 15, 100, varStyle('--p1-color'));
+            drawPaddle(955, p2.y, 15, 100, varStyle('--p2-color'));
 
-            // Bola
-            ctx.fillStyle = "#fff"; ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, 10, 0, Math.PI*2); ctx.fill();
+            // Bola com Brilho
+            ctx.fillStyle = "#fff"; ctx.shadowBlur = 20; ctx.shadowColor = "#fff";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, 10, 0, Math.PI * 2); ctx.fill();
             ctx.shadowBlur = 0;
         }
 
-        function drawGlowRect(x,y,w,h,c) {
-            ctx.fillStyle = c; ctx.shadowBlur = 20; ctx.shadowColor = c;
+        function drawPaddle(x,y,w,h,c) {
+            ctx.fillStyle = c; ctx.shadowBlur = 25; ctx.shadowColor = c;
             ctx.fillRect(x,y,w,h); ctx.shadowBlur = 0;
         }
 
-        function loop() { if (active) { update(); draw(); requestAnimationFrame(loop); } }
+        function varStyle(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+        function gameLoop() {
+            if (!active) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
     </script>
 </body>
 </html>
