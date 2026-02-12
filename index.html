@@ -2,153 +2,101 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>KING PONG | EXORCISM EDITION</title>
+    <title>KING PONG | SHELBY ACADEMY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --p1: #00f2ff;
-            --p2: #ff007f;
-            --bg: #030303;
-            --panel-bg: rgba(10, 10, 10, 0.95);
-        }
-
-        * { box-sizing: border-box; outline: none; }
+        :root { --p1: #00f2ff; --p2: #ff007f; --gold: #ffcc00; --bg: #020202; }
+        * { box-sizing: border-box; outline: none; cursor: crosshair; }
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: var(--bg); color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
+            background: var(--bg); color: #fff; font-family: 'Orbitron', sans-serif;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-
-        #master-stage {
-            position: relative; width: 1000px; height: 600px;
-            background: #000; border: 1px solid #222;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
+        #stage {
+            position: relative; width: 1100px; height: 650px;
+            background: #000; border: 1px solid #222; box-shadow: 0 0 150px #000;
         }
-
-        /* SCANLINES */
-        .vfx {
-            position: absolute; inset: 0; pointer-events: none; z-index: 1000;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
-            background-size: 100% 4px;
-        }
-
-        /* HUD PLACAR */
+        .vfx { position: absolute; inset: 0; pointer-events: none; z-index: 1000; background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%); background-size: 100% 4px; }
+        
+        /* HUD SUPREMO */
         #hud {
-            position: absolute; top: 0; width: 100%;
-            display: none; justify-content: space-between;
-            padding: 30px 100px; z-index: 100; pointer-events: none;
+            position: absolute; top: 0; width: 100%; display: none;
+            justify-content: space-between; padding: 40px 120px; z-index: 100;
         }
-        .score-val { font-size: 9rem; font-weight: 900; line-height: 0.8; text-shadow: 0 0 20px currentColor; }
-        .score-label { font-size: 10px; letter-spacing: 5px; opacity: 0.5; margin-top: 10px; text-align: center; }
+        .score-val { font-size: 10rem; font-weight: 900; line-height: 0.7; filter: drop-shadow(0 0 20px currentColor); }
+        .score-label { font-size: 11px; letter-spacing: 8px; opacity: 0.4; margin-top: 20px; text-align: center; text-transform: uppercase; }
 
         /* INTERFACES */
-        .overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500; backdrop-filter: blur(8px);
-        }
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; backdrop-filter: blur(15px); }
         .hidden { display: none !important; }
-
-        .king-card {
-            background: #080808; padding: 50px; border-radius: 15px;
-            border: 1px solid #333; text-align: center;
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.05);
-        }
-
+        .menu-card { background: #080808; padding: 60px; border-radius: 2px; border-left: 5px solid var(--p1); text-align: center; }
+        
         .btn-king {
-            width: 350px; padding: 22px; margin-top: 15px;
-            background: #111; color: #fff; border: 1px solid #444;
-            border-radius: 4px; font-weight: 900; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 4px; transition: 0.3s;
+            width: 400px; padding: 25px; margin-top: 15px; background: #000; color: #fff; border: 1px solid #333;
+            font-weight: 900; letter-spacing: 5px; transition: 0.2s;
         }
-        .btn-king:hover { background: #fff; color: #000; box-shadow: 0 0 20px var(--p1); }
+        .btn-king:hover { background: #fff; color: #000; box-shadow: 0 0 40px var(--p1); transform: scale(1.02); }
 
         canvas { display: block; }
-        #announcer {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 8rem; font-weight: 900; z-index: 200; opacity: 0; pointer-events: none;
-        }
+        #announcer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8rem; font-weight: 900; z-index: 200; opacity: 0; text-style: italic; }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div id="master-stage">
+    <div id="stage">
         <div class="vfx"></div>
-        
         <div id="hud">
-            <div>
-                <div id="s1" class="score-val" style="color: var(--p1)">0</div>
-                <div class="score-label">KING ACADEMY</div>
-            </div>
-            <div>
-                <div id="s2" class="score-val" style="color: var(--p2)">0</div>
-                <div class="score-label">SYSTEM CORE</div>
-            </div>
+            <div><div id="s1" class="score-val" style="color: var(--p1)">0</div><div class="score-label">KING P1</div></div>
+            <div><div id="s2" class="score-val" style="color: var(--p2)">0</div><div id="label-p2" class="score-label">SYSTEM CORE</div></div>
         </div>
+        <div id="announcer">POINT!</div>
+        <canvas id="canvas" width="1100" height="650"></canvas>
 
-        <div id="announcer">GOAL!</div>
-        <canvas id="gameCanvas" width="1000" height="600"></canvas>
-
-        <div id="scr-start" class="overlay">
-            <div class="king-card">
-                <h1 style="font-size: 4rem; margin: 0;">KING PONG</h1>
-                <p style="color: var(--p1); letter-spacing: 8px; font-size: 10px; margin-bottom: 30px;">EXORCISM PROTOCOL v6.0</p>
-                <button class="btn-king" onclick="Engine.boot(0.06)">DIFICULDADE: ACADEMY</button>
-                <button class="btn-king" onclick="Engine.boot(0.12)" style="border-color: var(--p2)">DIFICULDADE: KING 👑</button>
+        <div id="scr-init" class="overlay">
+            <div class="menu-card">
+                <h1 style="font-size: 4rem; margin: 0; letter-spacing: -2px;">KING <span style="color: var(--p2)">PONG</span></h1>
+                <p style="color: #444; letter-spacing: 15px; font-size: 10px; margin-bottom: 40px;">BY KING DEV ACADEMY</p>
+                <button class="btn-king" onclick="Core.boot('ia')">SOLO VS MACHINE</button>
+                <button class="btn-king" onclick="Core.boot('pvp')" style="border-color: var(--p2)">1 VS 1 - LOCAL PVP</button>
             </div>
         </div>
 
         <div id="scr-pause" class="overlay hidden">
-            <h2 style="font-size: 4rem; color: #ffcc00;">PAUSED</h2>
-            <button class="btn-king" onclick="Engine.togglePause()">RESUME</button>
-        </div>
-
-        <div id="scr-over" class="overlay hidden">
-            <h2 id="win-txt" style="font-size: 3rem;">-</h2>
-            <button class="btn-king" onclick="location.reload()">REBOOT TERMINAL</button>
+            <h2 style="font-size: 4rem; color: var(--gold)">PAUSE_OPERATIONAL</h2>
+            <button class="btn-king" onclick="Core.togglePause()">CONTINUE</button>
+            <button class="btn-king" onclick="location.reload()">TERMINATE</button>
         </div>
     </div>
 
 <script>
-/**
- * KING ENGINE v6.0 - THE EXORCISM
- * Ajustado para remover o "espírito obsessor" do Bot.
- */
-
-const SFX = {
+const AudioFx = {
     ctx: new (window.AudioContext || window.webkitAudioContext)(),
     play(f, t, d, v=0.1) {
-        const o = this.ctx.createOscillator();
-        const g = this.ctx.createGain();
+        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
         o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
         g.gain.setValueAtTime(v, this.ctx.currentTime);
         g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + d);
         o.connect(g); g.connect(this.ctx.destination);
         o.start(); o.stop(this.ctx.currentTime + d);
     },
-    hit() { this.play(200, 'square', 0.1); },
-    wall() { this.play(120, 'sine', 0.1); },
-    goal() { this.play(60, 'sawtooth', 0.6, 0.2); }
+    hit() { this.play(300, 'square', 0.1); },
+    goal() { this.play(80, 'sawtooth', 0.8, 0.2); }
 };
 
-const Engine = {
-    active: false, paused: false,
+const Core = {
+    active: false, paused: false, mode: 'ia',
     canvas: null, ctx: null,
-    iaLvl: 0.1, shake: 0,
-    
-    ball: { x: 500, y: 300, vx: 0, vy: 0, speed: 10, trail: [] },
-    p1: { y: 245, score: 0 },
-    p2: { y: 245, score: 0, errorY: 0 }, // O segredo da alma humana
-    keys: {}, fx: [],
+    ball: { x: 550, y: 325, vx: 8, vy: 8, r: 10, trail: [] },
+    p1: { y: 270, score: 0 }, p2: { y: 270, score: 0, error: 0 },
+    keys: {}, shake: 0,
 
-    boot(lvl) {
-        this.iaLvl = lvl;
-        this.canvas = document.getElementById('gameCanvas');
+    boot(mode) {
+        this.mode = mode;
+        this.canvas = document.getElementById('canvas');
         this.ctx = this.canvas.getContext('2d');
-        document.getElementById('scr-start').classList.add('hidden');
+        document.getElementById('scr-init').classList.add('hidden');
         document.getElementById('hud').style.display = 'flex';
+        if(mode === 'pvp') document.getElementById('label-p2').innerText = "KING P2";
         
         window.addEventListener('keydown', e => {
             this.keys[e.code] = true;
@@ -166,108 +114,86 @@ const Engine = {
     },
 
     resetBall() {
-        this.ball.x = 500; this.ball.y = 300; this.ball.speed = 10;
-        this.ball.vx = (Math.random() > 0.5 ? 1 : -1) * this.ball.speed;
-        this.ball.vy = (Math.random() - 0.5) * 10;
+        this.ball.x = 550; this.ball.y = 325;
+        let side = Math.random() > 0.5 ? 1 : -1;
+        this.ball.vx = side * 10; this.ball.vy = (Math.random() - 0.5) * 12;
         this.ball.trail = [];
-        this.p2.errorY = (Math.random() - 0.5) * 60; // Novo erro aleatório a cada saque
     },
 
     update() {
         if(!this.active || this.paused) return;
 
-        // Player 1
-        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 14;
-        if(this.keys['KeyS'] && this.p1.y < 480) this.p1.y += 14;
+        // Movimento P1
+        if(this.keys['KeyW'] && this.p1.y > 10) this.p1.y -= 15;
+        if(this.keys['KeyS'] && this.p1.y < 530) this.p1.y += 15;
 
-        // IA EXORCIZADA (Agora ela erra!)
-        // O Bot segue a bola + um erro aleatório para não ser perfeito
-        let target = this.ball.y - 55 + this.p2.errorY;
-        this.p2.y += (target - this.p2.y) * this.iaLvl * 8; // IA mais lenta e humana
-
-        // Bola logic
-        this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
-        this.ball.trail.push({x: this.ball.x, y: this.ball.y});
-        if(this.ball.trail.length > 15) this.ball.trail.shift();
-
-        // Colisões Parede
-        if(this.ball.y < 15 || this.ball.y > 585) {
-            this.ball.vy *= -1; this.shake = 8; SFX.wall();
+        // Movimento P2 (IA ou PVP)
+        if(this.mode === 'pvp') {
+            if(this.keys['ArrowUp'] && this.p2.y > 10) this.p2.y -= 15;
+            if(this.keys['ArrowDown'] && this.p2.y < 530) this.p2.y += 15;
+        } else {
+            let targetIA = this.ball.y - 55 + this.p2.error;
+            this.p2.y += (targetIA - this.p2.y) * 0.12; // IA Shelby: Firme mas honesta
         }
 
-        // Colisões Raquetes
-        let paddle = (this.ball.x < 500) ? this.p1 : this.p2;
-        let px = (this.ball.x < 500) ? 35 : 950;
+        this.ball.x += this.ball.vx; this.ball.y += this.ball.vy;
+        this.ball.trail.push({x: this.ball.x, y: this.ball.y});
+        if(this.ball.trail.length > 20) this.ball.trail.shift();
 
-        if(this.ball.x > px && this.ball.x < px + 15 && this.ball.y > paddle.y && this.ball.y < paddle.y + 110) {
+        // Colisão Paredes
+        if(this.ball.y < 15 || this.ball.y > 635) { this.ball.vy *= -1; this.shake = 8; }
+
+        // Colisão Raquetes
+        let isP1 = this.ball.x < 550;
+        let p = isP1 ? this.p1 : this.p2;
+        let px = isP1 ? 40 : 1045;
+
+        if(this.ball.x > px && this.ball.x < px + 15 && this.ball.y > p.y && this.ball.y < p.y + 110) {
             this.ball.vx *= -1.05;
-            this.ball.vy = (this.ball.y - (paddle.y + 55)) * 0.35;
-            this.shake = 15; SFX.hit();
-            // Muda o erro da IA após cada rebatida pra ela não ficar viciada
-            this.p2.errorY = (Math.random() - 0.5) * 50; 
+            this.ball.vy = (this.ball.y - (p.y + 55)) * 0.4;
+            this.shake = 15; AudioFx.hit();
+            if(this.mode === 'ia') this.p2.error = (Math.random()-0.5)*80;
         }
 
         // Gols
-        if(this.ball.x < 0) this.score(2);
-        if(this.ball.x > 1000) this.score(1);
-
+        if(this.ball.x < 0) this.scoreGoal(2);
+        if(this.ball.x > 1100) this.scoreGoal(1);
         if(this.shake > 0) this.shake *= 0.9;
     },
 
-    score(p) {
-        if(p === 1) this.p1.score++; else this.p2.score++;
+    scoreGoal(p) {
+        p === 1 ? this.p1.score++ : this.p2.score++;
         document.getElementById('s1').innerText = this.p1.score;
         document.getElementById('s2').innerText = this.p2.score;
-        SFX.goal(); this.shake = 30; this.active = false;
+        AudioFx.goal(); this.shake = 30; this.active = false;
         
         const ann = document.getElementById('announcer');
         ann.style.opacity = 1; ann.style.color = p === 1 ? '#00f2ff' : '#ff007f';
-
-        setTimeout(() => {
-            ann.style.opacity = 0;
-            if(this.p1.score >= 10 || this.p2.score >= 10) {
-                this.gameOver(p === 1 ? "KING CADET" : "SYSTEM CORE");
-            } else {
-                this.active = true; this.resetBall(); this.loop();
-            }
-        }, 1000);
-    },
-
-    gameOver(w) {
-        this.active = false;
-        document.getElementById('scr-over').classList.remove('hidden');
-        document.getElementById('win-txt').innerText = w + " WINS";
+        setTimeout(() => { ann.style.opacity = 0; this.active = true; this.resetBall(); this.loop(); }, 1000);
     },
 
     draw() {
         const ctx = this.ctx; ctx.save();
         if(this.shake > 0.5) ctx.translate((Math.random()-0.5)*this.shake, (Math.random()-0.5)*this.shake);
-        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 1000, 600);
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,1100,650);
 
-        // Rastro
+        // Grid Shelby
+        ctx.strokeStyle = '#080808';
+        for(let i=0; i<1100; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,650); ctx.stroke(); }
+
         this.ball.trail.forEach((t, i) => {
-            ctx.fillStyle = `rgba(255, 255, 255, ${i/30})`;
-            ctx.beginPath(); ctx.arc(t.x, t.y, (i/15)*10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255,255,255,${i/40})`;
+            ctx.beginPath(); ctx.arc(t.x, t.y, (i/20)*10, 0, Math.PI*2); ctx.fill();
         });
 
-        // Raquetes
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff';
-        ctx.fillRect(35, this.p1.y, 15, 110);
-        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f';
-        ctx.fillRect(950, this.p2.y, 15, 110);
-
-        // Bola
-        ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff';
-        ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#00f2ff'; ctx.shadowColor = '#00f2ff'; ctx.fillRect(40, this.p1.y, 15, 110);
+        ctx.fillStyle = '#ff007f'; ctx.shadowColor = '#ff007f'; ctx.fillRect(1045, this.p2.y, 15, 110);
+        ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2); ctx.fill();
         ctx.restore();
     },
 
-    loop() {
-        if(!this.active || this.paused) return;
-        this.update(); this.draw();
-        requestAnimationFrame(() => this.loop());
-    }
+    loop() { if(this.active && !this.paused) { this.update(); this.draw(); requestAnimationFrame(() => this.loop()); } }
 };
 </script>
 </body>
