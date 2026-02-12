@@ -13,5 +13,5 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`[KING DEV ACADEMY] Arena Online na porta ${PORT}`);
+    console.log(`[KING DEV ACADEMY] Servidor rodando na porta ${PORT}`);
 });
