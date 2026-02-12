@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KING PONG | Arena</title>
+    <title>KING PONG | Arena Ultimate</title>
     <style>
         :root {
             --neon-blue: #00d2ff;
             --neon-pink: #ff007f;
             --neon-green: #39ff14;
-            --ui-panel: rgba(10, 10, 10, 0.95);
+            --bg-panel: rgba(5, 5, 5, 0.98);
         }
 
         body {
@@ -24,67 +24,80 @@
             overflow: hidden;
         }
 
-        /* --- UI --- */
+        /* --- UI OVERLAYS --- */
         .overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: flex;
             align-items: center; justify-content: center;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .panel {
-            background: var(--ui-panel);
+            background: var(--bg-panel);
             border: 2px solid var(--neon-blue);
-            padding: 40px;
-            border-radius: 15px;
+            padding: 50px;
+            border-radius: 20px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
-            width: 320px;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.3);
+            width: 350px;
         }
 
-        h1 { font-size: 3rem; margin: 0; color: #fff; text-shadow: 0 0 15px var(--neon-blue); }
-        .brand { color: var(--neon-pink); letter-spacing: 4px; font-weight: bold; display: block; margin-bottom: 25px; font-size: 0.8rem;}
+        h1 { font-size: 3.5rem; margin: 0; text-shadow: 0 0 15px var(--neon-blue); }
+        .brand { color: var(--neon-pink); letter-spacing: 5px; font-weight: bold; display: block; margin-bottom: 30px; font-size: 0.9rem;}
 
-        .btn-group { display: flex; flex-direction: column; gap: 12px; }
+        .btn-group { display: flex; flex-direction: column; gap: 15px; }
         button {
             background: transparent; color: #fff; border: 1px solid #fff;
-            padding: 15px; font-weight: bold; cursor: pointer; border-radius: 5px;
-            transition: 0.3s; text-transform: uppercase;
+            padding: 18px; font-weight: bold; cursor: pointer; border-radius: 10px;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
         }
-        button:hover { background: #fff; color: #000; box-shadow: 0 0 15px #fff; }
+        button:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; transform: scale(1.05); }
 
-        /* --- PLACAR DE SETS --- */
+        /* --- MENSAGEM DE ANÚNCIO (SET) --- */
+        #announcement {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px #fff;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.5s;
+            text-align: center;
+        }
+
+        /* --- PLACAR --- */
         #scoreboard {
-            position: absolute; top: 20px; display: none;
-            width: 100%; justify-content: center; align-items: center; gap: 40px;
-            z-index: 50;
+            position: absolute; top: 30px; display: none;
+            width: 100%; justify-content: center; align-items: center; gap: 60px;
+            z-index: 100;
         }
 
-        .side { text-align: center; }
-        .points { font-size: 50px; font-weight: 900; line-height: 1; display: block;}
-        .sets-won { font-size: 14px; color: var(--neon-green); letter-spacing: 2px; }
-        .label { font-size: 10px; color: #666; text-transform: uppercase; }
+        .points { font-size: 70px; font-weight: 900; line-height: 0.8; display: block;}
+        .sets-won { font-size: 16px; color: var(--neon-green); font-weight: bold; margin-top: 5px; }
+        .label { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
 
-        #match-info { font-weight: bold; color: #444; border: 1px solid #222; padding: 5px 15px; border-radius: 20px; }
-
-        canvas { background: #000; display: none; border: 4px solid #111; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        canvas { background: #000; display: none; border: 2px solid #222; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div id="announcement">SET PARA P1!</div>
+
     <div id="scoreboard">
-        <div class="side">
+        <div style="text-align: center;">
             <span class="label">P1 (WASD)</span>
             <span id="p1-points" class="points" style="color: var(--neon-blue)">0</span>
             <span id="p1-sets" class="sets-won">SETS: 0</span>
         </div>
         
-        <div id="match-info">MELHOR DE 3</div>
+        <div id="match-type" style="border: 1px solid #333; padding: 10px 20px; border-radius: 30px; font-size: 12px; color: #aaa;">MELHOR DE 3</div>
 
-        <div class="side">
+        <div style="text-align: center;">
             <span class="label">P2 (SETAS)</span>
             <span id="p2-points" class="points" style="color: var(--neon-pink)">0</span>
             <span id="p2-sets" class="sets-won">SETS: 0</span>
@@ -96,29 +109,28 @@
             <h1>PONG</h1>
             <span class="brand">KING DEV ACADEMY</span>
             <div class="btn-group">
-                <button onclick="setMode('bot')">JOGAR VS BOT</button>
-                <button onclick="setMode('pvp')" style="border-color: var(--neon-pink); color: var(--neon-pink);">1 VS 1 LOCAL</button>
+                <button onclick="configMatch('bot')">PLAYER VS BOT</button>
+                <button onclick="configMatch('pvp')" style="border-color: var(--neon-pink); color: var(--neon-pink);">1 VS 1 LOCAL</button>
             </div>
         </div>
     </div>
 
     <div id="menu-config" class="overlay hidden">
         <div class="panel">
-            <h2 id="config-title">MODO: PVP</h2>
+            <h2 id="mode-title" style="margin-bottom: 25px;">MODO SELECIONADO</h2>
             <div class="btn-group">
-                <button onclick="startMatch(1)">RODADA ÚNICA</button>
-                <button onclick="startMatch(3)">MELHOR DE 3 SETS</button>
-                <button onclick="location.reload()" style="border:none; font-size:11px;">VOLTAR</button>
+                <button onclick="startGame(1)">RODADA ÚNICA (5 pts)</button>
+                <button onclick="startGame(3)">MELHOR DE 3 SETS</button>
+                <button onclick="location.reload()" style="border:none; font-size:12px; color: #666;">VOLTAR</button>
             </div>
         </div>
     </div>
 
     <div id="menu-winner" class="overlay hidden">
         <div class="panel" style="border-color: var(--neon-green)">
-            <h2 id="winner-text" style="color: var(--neon-green)">VITÓRIA!</h2>
-            <div class="btn-group">
-                <button onclick="location.reload()">MENU PRINCIPAL</button>
-            </div>
+            <h1 style="color: var(--neon-green); font-size: 2.5rem;">FIM DE JOGO</h1>
+            <p id="winner-msg" style="font-size: 1.5rem; margin: 20px 0;"></p>
+            <button onclick="location.reload()">MENU PRINCIPAL</button>
         </div>
     </div>
 
@@ -127,160 +139,163 @@
     <script>
         const canvas = document.getElementById("pongArena");
         const ctx = canvas.getContext("2d");
+        const ann = document.getElementById("announcement");
         
-        // --- GAME STATE ---
         let gameMode = 'bot';
-        let totalSetsNeeded = 1;
+        let setsToWin = 1;
         let isRunning = false;
         let keys = {};
 
         const state = {
-            p1Points: 0, p1Sets: 0,
-            p2Points: 0, p2Sets: 0
+            p1P: 0, p1S: 0,
+            p2P: 0, p2S: 0
         };
 
         const ball = {
             x: 500, y: 300, r: 10, vX: 7, vY: 7, speed: 8,
             reset() {
-                this.x = 500; this.y = 300;
-                this.speed = 8;
+                this.x = 500; this.y = 300; this.speed = 8;
                 this.vX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
                 this.vY = (Math.random() - 0.5) * 10;
             }
         };
 
-        const p1 = { y: 250, w: 15, h: 100, color: "#00d2ff" };
-        const p2 = { y: 250, w: 15, h: 100, color: "#ff007f" };
+        const p1 = { y: 250, w: 15, h: 100, color: varStyle('--neon-blue') };
+        const p2 = { y: 250, w: 15, h: 100, color: varStyle('--neon-pink') };
+
+        function varStyle(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
         window.addEventListener("keydown", e => keys[e.code] = true);
         window.addEventListener("keyup", e => keys[e.code] = false);
 
-        // --- NAVEGAÇÃO ---
-        function setMode(m) {
+        function configMatch(m) {
             gameMode = m;
             document.getElementById('menu-main').classList.add('hidden');
             document.getElementById('menu-config').classList.remove('hidden');
-            document.getElementById('config-title').innerText = m === 'bot' ? "MODO: VS BOT" : "MODO: 1 VS 1";
+            document.getElementById('mode-title').innerText = m === 'bot' ? "IA SELECIONADA" : "1 VS 1 SELECIONADO";
         }
 
-        function startMatch(sets) {
-            totalSetsNeeded = (sets === 3) ? 2 : 1;
+        function startGame(sets) {
+            setsToWin = (sets === 3) ? 2 : 1;
             document.getElementById('menu-config').classList.add('hidden');
             document.getElementById('scoreboard').style.display = 'flex';
-            document.getElementById('match-info').innerText = sets === 1 ? "RODADA ÚNICA" : "MELHOR DE 3";
+            document.getElementById('match-type').innerText = sets === 1 ? "RODADA ÚNICA" : "MELHOR DE 3";
             canvas.style.display = 'block';
             isRunning = true;
             ball.reset();
             loop();
         }
 
-        // --- LÓGICA ---
+        function notify(text, color) {
+            ann.innerText = text;
+            ann.style.color = color;
+            ann.style.textShadow = `0 0 20px ${color}`;
+            ann.style.opacity = "1";
+            ann.style.transform = "scale(1.2)";
+            setTimeout(() => {
+                ann.style.opacity = "0";
+                ann.style.transform = "scale(1)";
+            }, 1500);
+        }
+
         function update() {
             if (!isRunning) return;
 
-            // Movimento P1 (WASD)
-            if (keys['KeyW'] && p1.y > 0) p1.y -= 9;
-            if (keys['KeyS'] && p1.y < canvas.height - p1.h) p1.y += 9;
+            // Movimentação P1
+            if (keys['KeyW'] && p1.y > 0) p1.y -= 10;
+            if (keys['KeyS'] && p1.y < canvas.height - p1.h) p1.y += 10;
 
-            // Movimento P2 (BOT ou SETAS)
+            // Movimentação P2 (IA Melhorada)
             if (gameMode === 'pvp') {
-                if (keys['ArrowUp'] && p2.y > 0) p2.y -= 9;
-                if (keys['ArrowDown'] && p2.y < canvas.height - p2.h) p2.y += 9;
+                if (keys['ArrowUp'] && p2.y > 0) p2.y -= 10;
+                if (keys['ArrowDown'] && p2.y < canvas.height - p2.h) p2.y += 10;
             } else {
-                let center = p2.y + p2.h/2;
-                if (center < ball.y - 30) p2.y += 7;
-                if (center > ball.y + 30) p2.y -= 7;
+                // IA do Bot: Segue a bola com atraso e margem de erro
+                let botSpeed = 7.5; // Um pouco mais lento que o player
+                let center = p2.y + p2.h / 2;
+                let target = ball.y + (Math.random() * 20 - 10); // Margem de erro randômica
+                
+                if (center < target - 10) p2.y += botSpeed;
+                else if (center > target + 10) p2.y -= botSpeed;
             }
 
-            // Física da Bola
             ball.x += ball.vX; ball.y += ball.vY;
             if (ball.y < 0 || ball.y > canvas.height) ball.vY *= -1;
 
             let paddle = (ball.x < 500) ? p1 : p2;
-            let paddleX = (ball.x < 500) ? 30 : canvas.width - 30 - p2.w;
+            let pX = (ball.x < 500) ? 30 : canvas.width - 30 - p2.w;
 
-            if (checkCollision(ball, paddle, paddleX)) {
+            if (checkCollision(ball, paddle, pX)) {
                 let cp = (ball.y - (paddle.y + paddle.h/2)) / (paddle.h/2);
                 let angle = (Math.PI/4) * cp;
                 let dir = (ball.x < 500) ? 1 : -1;
                 ball.vX = dir * ball.speed * Math.cos(angle);
                 ball.vY = ball.speed * Math.sin(angle);
-                ball.speed += 0.4;
+                ball.speed += 0.5;
             }
 
-            // Pontuação do Set (Até 5)
-            if (ball.x < 0) scorePoint(2);
-            if (ball.x > canvas.width) scorePoint(1);
+            if (ball.x < 0) score(2);
+            if (ball.x > canvas.width) score(1);
         }
 
         function checkCollision(b, p, px) {
             return b.x + b.r > px && b.x - b.r < px + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
         }
 
-        function scorePoint(player) {
-            if (player === 1) state.p1Points++; else state.p2Points++;
+        function score(p) {
+            if (p === 1) state.p1P++; else state.p2P++;
             ball.reset();
-
-            // Verifica se alguém fechou o Set (5 pontos)
-            if (state.p1Points >= 5) {
-                state.p1Sets++;
-                resetSet();
-            } else if (state.p2Points >= 5) {
-                state.p2Sets++;
-                resetSet();
-            }
             updateUI();
-            checkMatchWinner();
-        }
 
-        function resetSet() {
-            state.p1Points = 0;
-            state.p2Points = 0;
+            if (state.p1P >= 5) {
+                state.p1S++;
+                state.p1P = 0; state.p2P = 0;
+                notify("SET PARA P1!", varStyle('--neon-blue'));
+                updateUI();
+            } else if (state.p2P >= 5) {
+                state.p2S++;
+                state.p1P = 0; state.p2P = 0;
+                notify(gameMode === 'bot' ? "SET PARA BOT!" : "SET PARA P2!", varStyle('--neon-pink'));
+                updateUI();
+            }
+            
+            if (state.p1S >= setsToWin || state.p2S >= setsToWin) {
+                isRunning = false;
+                setTimeout(() => {
+                    const winName = state.p1S > state.p2S ? "PLAYER 1" : (gameMode === 'bot' ? "BOT" : "PLAYER 2");
+                    document.getElementById('menu-winner').classList.remove('hidden');
+                    document.getElementById('winner-msg').innerText = `${winName} VENCEU A PARTIDA!`;
+                    document.getElementById('scoreboard').style.display = 'none';
+                }, 1600);
+            }
         }
 
         function updateUI() {
-            document.getElementById('p1-points').innerText = state.p1Points;
-            document.getElementById('p2-points').innerText = state.p2Points;
-            document.getElementById('p1-sets').innerText = `SETS: ${state.p1Sets}`;
-            document.getElementById('p2-sets').innerText = `SETS: ${state.p2Sets}`;
-        }
-
-        function checkMatchWinner() {
-            if (state.p1Sets >= totalSetsNeeded || state.p2Sets >= totalSetsNeeded) {
-                isRunning = false;
-                const winner = state.p1Sets > state.p2Sets ? "PLAYER 1" : (gameMode === 'bot' ? "COMPUTADOR" : "PLAYER 2");
-                showWinner(winner);
-            }
-        }
-
-        function showWinner(name) {
-            document.getElementById('scoreboard').style.display = 'none';
-            document.getElementById('menu-winner').classList.remove('hidden');
-            document.getElementById('winner-text').innerText = `${name} VENCEU A PARTIDA!`;
+            document.getElementById('p1-points').innerText = state.p1P;
+            document.getElementById('p2-points').innerText = state.p2P;
+            document.getElementById('p1-sets').innerText = `SETS: ${state.p1S}`;
+            document.getElementById('p2-sets').innerText = `SETS: ${state.p2S}`;
         }
 
         function draw() {
             ctx.fillStyle = "#000"; ctx.fillRect(0,0, canvas.width, canvas.height);
-
-            // Marcação: Linhas de limite
-            ctx.strokeStyle = "#111"; ctx.lineWidth = 10;
-            ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
-
-            // Marcação: Rede Central
+            
+            // Rede e Campo
             ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.setLineDash([10, 15]);
             ctx.beginPath(); ctx.moveTo(500,0); ctx.lineTo(500,600); ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeStyle = "#111"; ctx.strokeRect(5,5,990,590);
 
-            // Desenho Raquetes
-            drawGlowRect(30, p1.y, p1.w, p1.h, p1.color);
-            drawGlowRect(canvas.width - 30 - p2.w, p2.y, p2.w, p2.h, p2.color);
+            // Raquetes
+            drawGlow(30, p1.y, p1.w, p1.h, p1.color);
+            drawGlow(canvas.width - 30 - p2.w, p2.y, p2.w, p2.h, p2.color);
 
             // Bola
-            ctx.fillStyle = "#fff"; ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+            ctx.fillStyle = "#fff"; ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
             ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
         }
 
-        function drawGlowRect(x,y,w,h,c) {
+        function drawGlow(x,y,w,h,c) {
             ctx.fillStyle = c; ctx.shadowBlur = 20; ctx.shadowColor = c;
             ctx.fillRect(x,y,w,h); ctx.shadowBlur = 0;
         }
